@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+  // provider = "mongodb"
+  // url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid()) @map("_id")
+  email        String         @unique
+  name         String
+  Password     Password?
+  Presentation Presentation[]
+}
+
+model Password {
+  id       String @id @default(cuid()) @map("_id")
+  password String
+  User     User   @relation(fields: [userId], references: [id])
+  userId   String @unique
+}
+
+model Presentation {
+  id     String  @id @default(cuid()) @map("_id")
+  title  String
+  Slide  Slide[]
+  User   User    @relation(fields: [userId], references: [id])
+  userId String
+}
+
+model Slide {
+  id              String           @id @default(cuid()) @map("_id")
+  index           Int
+  TitleSlide      TitleSlide?
+  TitleAndContent TitleAndContent?
+  SectionHeader   SectionHeader?
+  TwoContent      TwoContent?
+  Comparison      Comparison?
+  TitleOnly       TitleOnly?
+  Blank           Blank?
+  Presentation    Presentation     @relation(fields: [presentationId], references: [id])
+  presentationId  String
+}
+
+model TitleSlide {
+  id       String @id @default(cuid()) @map("_id")
+  title    String
+  subtitle String
+  Slide    Slide  @relation(fields: [slideId], references: [id])
+  slideId  String @unique
+}
+
+model TitleAndContent {
+  id      String @id @default(cuid()) @map("_id")
+  title   String
+  content String
+  Slide   Slide  @relation(fields: [slideId], references: [id])
+  slideId String @unique
+}
+
+model SectionHeader {
+  id         String @id @default(cuid()) @map("_id")
+  section    String
+  subsection String
+  Slide      Slide  @relation(fields: [slideId], references: [id])
+  slideId    String @unique
+}
+
+model TwoContent {
+  id            String @id @default(cuid()) @map("_id")
+  title         String
+  firstContent  String
+  secondContent String
+  Slide         Slide  @relation(fields: [slideId], references: [id])
+  slideId       String @unique
+}
+
+model Comparison {
+  id               String @id @default(cuid()) @map("_id")
+  title            String
+  firstSubtitle    String
+  firstComparison  String
+  secondSubtitle   String
+  secondComparison String
+  Slide            Slide  @relation(fields: [slideId], references: [id])
+  slideId          String @unique
+}
+
+model TitleOnly {
+  id      String @id @default(cuid()) @map("_id")
+  title   String
+  Slide   Slide  @relation(fields: [slideId], references: [id])
+  slideId String @unique
+}
+
+model Blank {
+  id      String @id @default(cuid()) @map("_id")
+  Slide   Slide  @relation(fields: [slideId], references: [id])
+  slideId String @unique
+}
