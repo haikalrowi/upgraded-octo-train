@@ -1,7 +1,7 @@
 "use client";
 
 import { createPresentation, Payload } from "@/lib/action/presentation";
-import path from "@/lib/path";
+import route from "@/lib/route";
 import {
   AspectRatio,
   Button,
@@ -60,13 +60,13 @@ export default function Create() {
     },
     onValuesChange(values) {
       localStorage.setItem(
-        path.dashboard_presentation_create,
+        route.dashboard_presentation_create,
         JSON.stringify(values),
       );
     },
   });
   useEffect(() => {
-    const values = localStorage.getItem(path.dashboard_presentation_create);
+    const values = localStorage.getItem(route.dashboard_presentation_create);
     if (values) {
       try {
         form.setValues(JSON.parse(values));
@@ -183,7 +183,7 @@ export default function Create() {
   ];
   const slide_1 = (
     <Fieldset
-      legend={`Slide ${currentSlideIndexState[0]}`}
+      legend={`Slide ${currentSlideIndexState[0] + 1}`}
       variant="filled"
     >
       <Stack>
@@ -210,7 +210,8 @@ export default function Create() {
       </Stack>
     </Fieldset>
   );
-  const slide_2_type = form.getValues().Slide[currentSlideIndexState[0]].type;
+  const slide_2_currentType =
+    form.getValues().Slide[currentSlideIndexState[0]].type;
   const slide_2_titleSlide = (
     <>
       <TextInput
@@ -379,16 +380,20 @@ export default function Create() {
       variant="filled"
     >
       <Stack>
-        {!slide_2_type && <Text>Select a slide type</Text>}
-        {slide_2_type === Prisma.ModelName.TitleSlide && slide_2_titleSlide}
-        {slide_2_type === Prisma.ModelName.TitleAndContent &&
+        {!slide_2_currentType && <Text c="dimmed">Select a slide type</Text>}
+        {slide_2_currentType === Prisma.ModelName.TitleSlide &&
+          slide_2_titleSlide}
+        {slide_2_currentType === Prisma.ModelName.TitleAndContent &&
           slide_2_titleAndContent}
-        {slide_2_type === Prisma.ModelName.SectionHeader &&
+        {slide_2_currentType === Prisma.ModelName.SectionHeader &&
           slide_2_sectionHeader}
-        {slide_2_type === Prisma.ModelName.TwoContent && slide_2_twoContent}
-        {slide_2_type === Prisma.ModelName.Comparison && slide_2_comparison}
-        {slide_2_type === Prisma.ModelName.TitleOnly && slide_2_titleOnly}
-        {slide_2_type === Prisma.ModelName.Blank && <Text>Blank</Text>}
+        {slide_2_currentType === Prisma.ModelName.TwoContent &&
+          slide_2_twoContent}
+        {slide_2_currentType === Prisma.ModelName.Comparison &&
+          slide_2_comparison}
+        {slide_2_currentType === Prisma.ModelName.TitleOnly &&
+          slide_2_titleOnly}
+        {slide_2_currentType === Prisma.ModelName.Blank && <Text>Blank</Text>}
       </Stack>
     </Fieldset>
   );

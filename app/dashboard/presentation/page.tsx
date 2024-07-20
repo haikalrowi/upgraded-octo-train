@@ -1,6 +1,6 @@
-import path from "@/lib/path";
+import route from "@/lib/route";
 import { redirect } from "next/navigation";
 
 export default function Presentation_Page() {
-  redirect(path.dashboard_presentation_create);
+  redirect(route.dashboard_presentation_create);
 }

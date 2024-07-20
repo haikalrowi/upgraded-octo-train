@@ -1,7 +1,7 @@
 "use client";
 
 import { userLogout } from "@/lib/action/user";
-import path from "@/lib/path";
+import route from "@/lib/route";
 import {
   Anchor,
   AppShell,
@@ -17,10 +17,14 @@ import {
   useMantineColorScheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function Dashboard({ children }: React.PropsWithChildren) {
+export default function Dashboard({
+  children,
+  ...props
+}: React.PropsWithChildren & { user: Prisma.UserGetPayload<{}> }) {
   const [opened, { toggle }] = useDisclosure();
   const { toggleColorScheme } = useMantineColorScheme();
   const pathname = usePathname();
@@ -41,21 +45,35 @@ export default function Dashboard({ children }: React.PropsWithChildren) {
         <Group
           h="100%"
           justify="space-between"
+          grow
         >
-          <Burger
-            hiddenFrom="sm"
-            size="sm"
-            opened={opened}
-            onClick={toggle}
-          />
-          <Anchor
-            component={Link}
-            href={path.dashboard_home}
-          >
-            Logo
-          </Anchor>
-          <Group visibleFrom="sm">
+          <Group>
+            <Burger
+              hiddenFrom="sm"
+              size="sm"
+              opened={opened}
+              onClick={toggle}
+            />
+            <Anchor
+              visibleFrom="sm"
+              component={Link}
+              href={route.dashboard_home}
+            >
+              Logo
+            </Anchor>
+          </Group>
+          <Group justify="center">
+            <Anchor
+              hiddenFrom="sm"
+              component={Link}
+              href={route.dashboard_home}
+            >
+              Logo
+            </Anchor>
+          </Group>
+          <Group justify="end">
             <Button
+              visibleFrom="sm"
               variant="subtle"
               size="compact-sm"
               onClick={toggleColorScheme}
@@ -68,7 +86,10 @@ export default function Dashboard({ children }: React.PropsWithChildren) {
             >
               <Menu.Target>
                 <UnstyledButton>
-                  <Avatar>XX</Avatar>
+                  <Avatar
+                    name={props.user.name}
+                    color="initials"
+                  />
                 </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown>
@@ -83,20 +104,20 @@ export default function Dashboard({ children }: React.PropsWithChildren) {
           component={ScrollArea}
           grow
         >
-          {pathname.startsWith(path.dashboard_presentation_home) && (
+          {pathname.startsWith(route.dashboard_presentation_home) && (
             <>
               <NavLink
                 component={Link}
-                href={path.dashboard_presentation_create}
+                href={route.dashboard_presentation_create}
                 label="Create"
-                active={pathname === path.dashboard_presentation_create}
+                active={pathname === route.dashboard_presentation_create}
                 onClick={toggle}
               />
               <NavLink
                 component={Link}
-                href={path.dashboard_presentation_update}
+                href={route.dashboard_presentation_update}
                 label="Update"
-                active={pathname === path.dashboard_presentation_update}
+                active={pathname === route.dashboard_presentation_update}
                 onClick={toggle}
               />
             </>

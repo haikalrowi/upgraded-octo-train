@@ -1,4 +1,4 @@
-const path = {
+const route = {
   home: "/",
   dashboard_home: "/dashboard",
   dashboard_presentation_home: "/dashboard/presentation",
@@ -6,4 +6,4 @@ const path = {
   dashboard_presentation_update: "/dashboard/presentation/update",
 } as const;
 
-export default path;
+export default route;

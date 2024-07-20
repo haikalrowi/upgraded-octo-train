@@ -13,7 +13,14 @@ export default async function Dashboard_Layout({
     if (!jwt) throw [{ jwt }];
     const { userId } = await jwtVerify(jwt);
     const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-    return <Dashboard key={user.id}>{children}</Dashboard>;
+    return (
+      <Dashboard
+        key={user.id}
+        user={user}
+      >
+        {children}
+      </Dashboard>
+    );
   } catch (error) {
     console.error(error);
     return <Login />;
