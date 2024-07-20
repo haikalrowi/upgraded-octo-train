@@ -35,6 +35,7 @@ model Presentation {
 model Slide {
   id              String           @id @default(cuid()) @map("_id")
   index           Int
+  type            String
   TitleSlide      TitleSlide?
   TitleAndContent TitleAndContent?
   SectionHeader   SectionHeader?

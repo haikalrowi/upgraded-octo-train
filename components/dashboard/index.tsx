@@ -5,12 +5,16 @@ import path from "@/lib/path";
 import {
   Anchor,
   AppShell,
+  Avatar,
   Burger,
   Button,
+  Container,
   Group,
   Menu,
   NavLink,
   ScrollArea,
+  UnstyledButton,
+  useMantineColorScheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
@@ -18,6 +22,7 @@ import { usePathname } from "next/navigation";
 
 export default function Dashboard({ children }: React.PropsWithChildren) {
   const [opened, { toggle }] = useDisclosure();
+  const { toggleColorScheme } = useMantineColorScheme();
   const pathname = usePathname();
   const logout = async () => {
     await userLogout();
@@ -50,9 +55,21 @@ export default function Dashboard({ children }: React.PropsWithChildren) {
             Logo
           </Anchor>
           <Group visibleFrom="sm">
-            <Menu>
+            <Button
+              variant="subtle"
+              size="compact-sm"
+              onClick={toggleColorScheme}
+            >
+              Theme
+            </Button>
+            <Menu
+              trigger="hover"
+              width={16 * 16}
+            >
               <Menu.Target>
-                <Button>User</Button>
+                <UnstyledButton>
+                  <Avatar>XX</Avatar>
+                </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item onClick={logout}>Logout</Menu.Item>
@@ -86,7 +103,9 @@ export default function Dashboard({ children }: React.PropsWithChildren) {
           )}
         </AppShell.Section>
       </AppShell.Navbar>
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main>
+        <Container>{children}</Container>
+      </AppShell.Main>
     </AppShell>
   );
 }

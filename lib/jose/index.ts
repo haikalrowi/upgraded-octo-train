@@ -1,10 +1,11 @@
+import { Prisma } from "@prisma/client";
 import * as jose from "jose";
 
 const alg = "HS256";
 const secret = new TextEncoder().encode(process.env.SALT!);
 
 type JwtPayload = {
-  userId: string;
+  [Prisma.PasswordScalarFieldEnum.userId]: string;
 };
 
 async function jwtSign(payload: JwtPayload) {

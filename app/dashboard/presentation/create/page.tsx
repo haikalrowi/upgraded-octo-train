@@ -1,7 +1,5 @@
+import Create from "@/components/dashboard/presentation/create";
+
 export default function Create_Page() {
-  return (
-    <div>
-      <div>Create</div>
-    </div>
-  );
+  return <Create />;
 }
