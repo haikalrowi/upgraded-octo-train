@@ -1,16 +1,17 @@
 "use client";
 
 import { createPresentation, Payload } from "@/lib/action/presentation";
-import route from "@/lib/route";
 import {
+  ActionIcon,
   AspectRatio,
   Button,
   Card,
-  ComboboxData,
+  Divider,
   Fieldset,
   Group,
-  Select,
+  NativeSelect,
   SimpleGrid,
+  Space,
   Stack,
   Text,
   TextInput,
@@ -19,27 +20,37 @@ import { useForm } from "@mantine/form";
 import { useToggle } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { Prisma } from "@prisma/client";
+import {
+  IconCaretLeft,
+  IconCaretRight,
+  IconMinus,
+  IconPlus,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 export default function Create() {
   const form_initialValues = () => {
-    const slide: Payload["Slide"][number] = {
-      type: "",
-      TitleSlide: { title: "", subtitle: "" },
-      TitleAndContent: { title: "", content: "" },
-      SectionHeader: { section: "", subsection: "" },
-      TwoContent: { title: "", firstContent: "", secondContent: "" },
-      Comparison: {
-        title: "",
-        firstSubtitle: "",
-        firstComparison: "",
-        secondSubtitle: "",
-        secondComparison: "",
-      },
-      TitleOnly: { title: "" },
-      Blank: {},
-    };
-    return { title: "", Slide: [slide] } as const satisfies Payload;
+    return {
+      title: "",
+      Slide: [
+        {
+          type: Prisma.ModelName.TitleSlide,
+          TitleSlide: { title: "", subtitle: "" },
+          TitleAndContent: { title: "", content: "" },
+          SectionHeader: { section: "", subsection: "" },
+          TwoContent: { title: "", firstContent: "", secondContent: "" },
+          Comparison: {
+            title: "",
+            firstSubtitle: "",
+            firstComparison: "",
+            secondSubtitle: "",
+            secondComparison: "",
+          },
+          TitleOnly: { title: "" },
+          Blank: {},
+        },
+      ],
+    } as const satisfies Payload;
   };
   const form = useForm<Payload>({
     mode: "controlled",
@@ -60,13 +71,13 @@ export default function Create() {
     },
     onValuesChange(values) {
       localStorage.setItem(
-        route.dashboard_presentation_create,
+        "dashboard_presentation_create_form",
         JSON.stringify(values),
       );
     },
   });
   useEffect(() => {
-    const values = localStorage.getItem(route.dashboard_presentation_create);
+    const values = localStorage.getItem("dashboard_presentation_create_form");
     if (values) {
       try {
         form.setValues(JSON.parse(values));
@@ -76,92 +87,8 @@ export default function Create() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const currentSlideIndexState = useState(0);
-  const pending = useToggle();
-  const form_onSubmit = form.onSubmit(async (values, event) => {
-    event?.preventDefault();
-    pending[1]();
-    try {
-      await createPresentation(values);
-    } catch (error) {
-      alert(error);
-      location.reload();
-    }
-    notifications.show({ message: "OK" });
-    pending[1]();
-    form.reset();
-    currentSlideIndexState[1](0);
-  });
-  const slide_1_action_addBefore = () => {
-    form.insertListItem(
-      "Slide",
-      form_initialValues().Slide[0],
-      currentSlideIndexState[0],
-    );
-  };
-  const slide_1_action_addAfter = () => {
-    form.insertListItem(
-      "Slide",
-      form_initialValues().Slide[0],
-      currentSlideIndexState[0] + 1,
-    );
-    slide_1_action_next();
-  };
-  const slide_1_action_previous = () => {
-    currentSlideIndexState[1]((prev) => prev - 1);
-  };
-  const slide_1_action_next = () => {
-    currentSlideIndexState[1]((prev) => prev + 1);
-  };
-  const slide_1_action_remove = () => {
-    form.removeListItem("Slide", currentSlideIndexState[0]);
-    if (!form.getValues().Slide[currentSlideIndexState[0]]) {
-      slide_1_action_previous();
-    }
-  };
-  const slide_1_action = (
-    <Group justify="space-between">
-      <Button.Group>
-        <Button
-          variant="subtle"
-          color="green"
-          size="compact-xs"
-          onClick={slide_1_action_addBefore}
-        >
-          Add before
-        </Button>
-        <Button
-          variant="subtle"
-          color="green"
-          size="compact-xs"
-          onClick={slide_1_action_addAfter}
-        >
-          Add after
-        </Button>
-      </Button.Group>
-      <Button.Group>
-        <Button
-          variant="subtle"
-          size="compact-xs"
-          disabled={currentSlideIndexState[0] === 0}
-          onClick={slide_1_action_previous}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="subtle"
-          size="compact-xs"
-          disabled={
-            currentSlideIndexState[0] === form.getValues().Slide.length - 1
-          }
-          onClick={slide_1_action_next}
-        >
-          Next
-        </Button>
-      </Button.Group>
-    </Group>
-  );
-  const slide_1_preview = (
+  const currentSlideIndex = useState(0);
+  const preview_card = (
     <AspectRatio ratio={16 / 9}>
       <Card
         shadow="sm"
@@ -171,237 +98,272 @@ export default function Create() {
       </Card>
     </AspectRatio>
   );
-  const slide_1_types: ComboboxData = [
-    { value: "", label: "Select", disabled: true },
-    { value: Prisma.ModelName.TitleSlide, label: "Title Slide" },
-    { value: Prisma.ModelName.TitleAndContent, label: "Title and Content" },
-    { value: Prisma.ModelName.SectionHeader, label: "Section Header" },
-    { value: Prisma.ModelName.TwoContent, label: "Two Content" },
-    { value: Prisma.ModelName.Comparison, label: "Comparison" },
-    { value: Prisma.ModelName.TitleOnly, label: "Title Only" },
-    { value: Prisma.ModelName.Blank, label: "Blank" },
-  ];
-  const slide_1 = (
-    <Fieldset
-      legend={`Slide ${currentSlideIndexState[0] + 1}`}
-      variant="filled"
-    >
-      <Stack>
-        {slide_1_action}
-        {slide_1_preview}
-        <Select
-          required
-          label="Type"
-          data={slide_1_types}
-          key={form.key(`Slide.${currentSlideIndexState[0]}.type`)}
-          {...form.getInputProps(`Slide.${currentSlideIndexState[0]}.type`)}
-        />
-        <Group justify="end">
-          <Button
-            variant="subtle"
-            color="red"
-            size="compact-xs"
-            disabled={form.getValues().Slide.length === 1}
-            onClick={slide_1_action_remove}
+  const preview_action_addBefore = () => {
+    form.insertListItem(
+      "Slide",
+      form_initialValues().Slide[0],
+      currentSlideIndex[0],
+    );
+  };
+  const preview_action_addAfter = () => {
+    form.insertListItem(
+      "Slide",
+      form_initialValues().Slide[0],
+      currentSlideIndex[0] + 1,
+    );
+    preview_action_next();
+  };
+  const preview_action_previous = () => {
+    currentSlideIndex[1]((prev) => prev - 1);
+  };
+  const preview_action_next = () => {
+    currentSlideIndex[1]((prev) => prev + 1);
+  };
+  const preview_action_remove = () => {
+    form.removeListItem("Slide", currentSlideIndex[0]);
+    if (!form.getValues().Slide[currentSlideIndex[0]]) {
+      preview_action_previous();
+    }
+  };
+  const preview_action = (
+    <Group justify="space-between">
+      <ActionIcon
+        variant="light"
+        color="red"
+        disabled={form.getValues().Slide.length === 1}
+        onClick={preview_action_remove}
+      >
+        <IconMinus />
+      </ActionIcon>
+      <Group>
+        <ActionIcon
+          variant="default"
+          onClick={preview_action_addBefore}
+        >
+          <IconPlus />
+        </ActionIcon>
+        <ActionIcon.Group>
+          <ActionIcon
+            variant="light"
+            disabled={currentSlideIndex[0] === 0}
+            onClick={preview_action_previous}
           >
-            Remove
-          </Button>
-        </Group>
+            <IconCaretLeft />
+          </ActionIcon>
+          <ActionIcon
+            variant="light"
+            disabled={
+              currentSlideIndex[0] === form.getValues().Slide.length - 1
+            }
+            onClick={preview_action_next}
+          >
+            <IconCaretRight />
+          </ActionIcon>
+        </ActionIcon.Group>
+        <ActionIcon
+          variant="default"
+          onClick={preview_action_addAfter}
+        >
+          <IconPlus />
+        </ActionIcon>
+      </Group>
+    </Group>
+  );
+  const form_pending = useToggle();
+  const preview = (
+    <Fieldset legend={`Slide ${currentSlideIndex[0] + 1}`}>
+      <Stack>
+        {preview_card}
+        {preview_action}
       </Stack>
     </Fieldset>
   );
-  const slide_2_currentType =
-    form.getValues().Slide[currentSlideIndexState[0]].type;
-  const slide_2_titleSlide = (
+  const slide_selectType = (
+    <NativeSelect
+      required
+      label="Type"
+      data={[
+        { value: Prisma.ModelName.TitleSlide, label: "Title Slide" },
+        { value: Prisma.ModelName.TitleAndContent, label: "Title and Content" },
+        { value: Prisma.ModelName.SectionHeader, label: "Section Header" },
+        { value: Prisma.ModelName.TwoContent, label: "Two Content" },
+        { value: Prisma.ModelName.Comparison, label: "Comparison" },
+        { value: Prisma.ModelName.TitleOnly, label: "Title Only" },
+        { value: Prisma.ModelName.Blank, label: "Blank" },
+      ]}
+      key={form.key(`Slide.${currentSlideIndex[0]}.type`)}
+      {...form.getInputProps(`Slide.${currentSlideIndex[0]}.type`)}
+    />
+  );
+  const slide_titleSlide = (
     <>
       <TextInput
         required
         label="Title"
-        key={form.key(`Slide.${currentSlideIndexState[0]}.TitleSlide.title`)}
+        key={form.key(`Slide.${currentSlideIndex[0]}.TitleSlide.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.TitleSlide.title`,
+          `Slide.${currentSlideIndex[0]}.TitleSlide.title`,
         )}
       />
       <TextInput
         required
         label="Subtitle"
-        key={form.key(`Slide.${currentSlideIndexState[0]}.TitleSlide.subtitle`)}
+        key={form.key(`Slide.${currentSlideIndex[0]}.TitleSlide.subtitle`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.TitleSlide.subtitle`,
+          `Slide.${currentSlideIndex[0]}.TitleSlide.subtitle`,
         )}
       />
     </>
   );
-  const slide_2_titleAndContent = (
+  const slide_titleAndContent = (
     <>
       <TextInput
         required
         label="Title"
-        key={form.key(
-          `Slide.${currentSlideIndexState[0]}.TitleAndContent.title`,
-        )}
+        key={form.key(`Slide.${currentSlideIndex[0]}.TitleAndContent.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.TitleAndContent.title`,
+          `Slide.${currentSlideIndex[0]}.TitleAndContent.title`,
         )}
       />
       <TextInput
         required
         label="Content"
-        key={form.key(
-          `Slide.${currentSlideIndexState[0]}.TitleAndContent.content`,
-        )}
+        key={form.key(`Slide.${currentSlideIndex[0]}.TitleAndContent.content`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.TitleAndContent.content`,
+          `Slide.${currentSlideIndex[0]}.TitleAndContent.content`,
         )}
       />
     </>
   );
-  const slide_2_sectionHeader = (
+  const slide_sectionHeader = (
     <>
       <TextInput
         required
         label="Section"
-        key={form.key(
-          `Slide.${currentSlideIndexState[0]}.SectionHeader.section`,
-        )}
+        key={form.key(`Slide.${currentSlideIndex[0]}.SectionHeader.section`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.SectionHeader.section`,
+          `Slide.${currentSlideIndex[0]}.SectionHeader.section`,
         )}
       />
       <TextInput
         required
         label="Subsection"
-        key={form.key(
-          `Slide.${currentSlideIndexState[0]}.SectionHeader.subsection`,
-        )}
+        key={form.key(`Slide.${currentSlideIndex[0]}.SectionHeader.subsection`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.SectionHeader.subsection`,
+          `Slide.${currentSlideIndex[0]}.SectionHeader.subsection`,
         )}
       />
     </>
   );
-  const slide_2_twoContent = (
+  const slide_twoContent = (
     <>
       <TextInput
         required
         label="Title"
-        key={form.key(`Slide.${currentSlideIndexState[0]}.TwoContent.title`)}
+        key={form.key(`Slide.${currentSlideIndex[0]}.TwoContent.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.TwoContent.title`,
+          `Slide.${currentSlideIndex[0]}.TwoContent.title`,
         )}
       />
       <TextInput
         required
         label="First content"
-        key={form.key(
-          `Slide.${currentSlideIndexState[0]}.TwoContent.firstContent`,
-        )}
+        key={form.key(`Slide.${currentSlideIndex[0]}.TwoContent.firstContent`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.TwoContent.firstContent`,
+          `Slide.${currentSlideIndex[0]}.TwoContent.firstContent`,
         )}
       />
       <TextInput
         required
         label="Second content"
-        key={form.key(
-          `Slide.${currentSlideIndexState[0]}.TwoContent.secondContent`,
-        )}
+        key={form.key(`Slide.${currentSlideIndex[0]}.TwoContent.secondContent`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.TwoContent.secondContent`,
+          `Slide.${currentSlideIndex[0]}.TwoContent.secondContent`,
         )}
       />
     </>
   );
-  const slide_2_comparison = (
+  const slide_comparison = (
     <>
       <TextInput
         required
         label="Title"
-        key={form.key(`Slide.${currentSlideIndexState[0]}.Comparison.title`)}
+        key={form.key(`Slide.${currentSlideIndex[0]}.Comparison.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.Comparison.title`,
+          `Slide.${currentSlideIndex[0]}.Comparison.title`,
         )}
       />
       <TextInput
         required
         label="First subtitle"
-        key={form.key(
-          `Slide.${currentSlideIndexState[0]}.Comparison.firstSubtitle`,
-        )}
+        key={form.key(`Slide.${currentSlideIndex[0]}.Comparison.firstSubtitle`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.Comparison.firstSubtitle`,
+          `Slide.${currentSlideIndex[0]}.Comparison.firstSubtitle`,
         )}
       />
       <TextInput
         required
         label="First comparison"
         key={form.key(
-          `Slide.${currentSlideIndexState[0]}.Comparison.firstComparison`,
+          `Slide.${currentSlideIndex[0]}.Comparison.firstComparison`,
         )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.Comparison.firstComparison`,
+          `Slide.${currentSlideIndex[0]}.Comparison.firstComparison`,
         )}
       />
       <TextInput
         required
         label="Second subtitle"
         key={form.key(
-          `Slide.${currentSlideIndexState[0]}.Comparison.secondSubtitle`,
+          `Slide.${currentSlideIndex[0]}.Comparison.secondSubtitle`,
         )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.Comparison.secondSubtitle`,
+          `Slide.${currentSlideIndex[0]}.Comparison.secondSubtitle`,
         )}
       />
       <TextInput
         required
         label="Second comparison"
         key={form.key(
-          `Slide.${currentSlideIndexState[0]}.Comparison.secondComparison`,
+          `Slide.${currentSlideIndex[0]}.Comparison.secondComparison`,
         )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndexState[0]}.Comparison.secondComparison`,
+          `Slide.${currentSlideIndex[0]}.Comparison.secondComparison`,
         )}
       />
     </>
   );
-  const slide_2_titleOnly = (
+  const slide_titleOnly = (
     <TextInput
       required
       label="Title"
-      key={form.key(`Slide.${currentSlideIndexState[0]}.TitleOnly.title`)}
-      {...form.getInputProps(
-        `Slide.${currentSlideIndexState[0]}.TitleOnly.title`,
-      )}
+      key={form.key(`Slide.${currentSlideIndex[0]}.TitleOnly.title`)}
+      {...form.getInputProps(`Slide.${currentSlideIndex[0]}.TitleOnly.title`)}
     />
   );
-  const slide_2 = (
+  const slide_type = form.getValues().Slide[currentSlideIndex[0]].type;
+  const slide = (
     <Fieldset
       legend="Slide"
       variant="filled"
     >
       <Stack>
-        {!slide_2_currentType && <Text c="dimmed">Select a slide type</Text>}
-        {slide_2_currentType === Prisma.ModelName.TitleSlide &&
-          slide_2_titleSlide}
-        {slide_2_currentType === Prisma.ModelName.TitleAndContent &&
-          slide_2_titleAndContent}
-        {slide_2_currentType === Prisma.ModelName.SectionHeader &&
-          slide_2_sectionHeader}
-        {slide_2_currentType === Prisma.ModelName.TwoContent &&
-          slide_2_twoContent}
-        {slide_2_currentType === Prisma.ModelName.Comparison &&
-          slide_2_comparison}
-        {slide_2_currentType === Prisma.ModelName.TitleOnly &&
-          slide_2_titleOnly}
-        {slide_2_currentType === Prisma.ModelName.Blank && <Text>Blank</Text>}
+        {slide_selectType}
+        <Space />
+        <Divider />
+        {slide_type === Prisma.ModelName.TitleSlide && slide_titleSlide}
+        {slide_type === Prisma.ModelName.TitleAndContent &&
+          slide_titleAndContent}
+        {slide_type === Prisma.ModelName.SectionHeader && slide_sectionHeader}
+        {slide_type === Prisma.ModelName.TwoContent && slide_twoContent}
+        {slide_type === Prisma.ModelName.Comparison && slide_comparison}
+        {slide_type === Prisma.ModelName.TitleOnly && slide_titleOnly}
+        {slide_type === Prisma.ModelName.Blank && <Text c="dimmed">Blank</Text>}
       </Stack>
     </Fieldset>
   );
   const presentation = (
-    <Fieldset
-      legend="Presentation"
-      variant="filled"
-    >
+    <Fieldset variant="filled">
       <Stack>
         <TextInput
           required
@@ -412,7 +374,7 @@ export default function Create() {
         <Group justify="end">
           <Button
             type="submit"
-            loading={pending[0]}
+            loading={form_pending[0]}
           >
             Create
           </Button>
@@ -420,12 +382,28 @@ export default function Create() {
       </Stack>
     </Fieldset>
   );
+  const form_onSubmit = form.onSubmit(async (values, event) => {
+    event?.preventDefault();
+    form_pending[1]();
+    try {
+      await createPresentation(values);
+    } catch (error) {
+      alert(error);
+      location.reload();
+    }
+    notifications.show({ message: "OK" });
+    form_pending[1]();
+    form.reset();
+    currentSlideIndex[1](0);
+  });
   return (
     <form onSubmit={form_onSubmit}>
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
-        {slide_1}
-        {slide_2}
-        {presentation}
+        <Stack>
+          {preview}
+          {presentation}
+        </Stack>
+        {slide}
       </SimpleGrid>
     </form>
   );
