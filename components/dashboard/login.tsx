@@ -34,6 +34,7 @@ export default function Login() {
         <Fieldset>
           <Stack>
             <TextInput
+              autoFocus
               required
               type="email"
               label="Email"

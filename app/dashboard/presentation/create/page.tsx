@@ -1,5 +1,5 @@
-import Create from "@/components/dashboard/presentation/create";
+import Form from "@/components/dashboard/presentation/form";
 
 export default function Create_Page() {
-  return <Create />;
+  return <Form type="create" />;
 }

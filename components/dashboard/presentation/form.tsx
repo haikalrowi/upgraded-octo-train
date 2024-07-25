@@ -28,47 +28,33 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-export default function Create() {
-  const form_initialValues = () => {
+type Props = { type: "create" } | { type: "update"; initialValues: Payload };
+
+export default function Form(props: Props) {
+  const form_slide = () => {
     return {
-      title: "",
-      Slide: [
-        {
-          type: Prisma.ModelName.TitleSlide,
-          TitleSlide: { title: "", subtitle: "" },
-          TitleAndContent: { title: "", content: "" },
-          SectionHeader: { section: "", subsection: "" },
-          TwoContent: { title: "", firstContent: "", secondContent: "" },
-          Comparison: {
-            title: "",
-            firstSubtitle: "",
-            firstComparison: "",
-            secondSubtitle: "",
-            secondComparison: "",
-          },
-          TitleOnly: { title: "" },
-          Blank: {},
-        },
-      ],
-    } as const satisfies Payload;
+      type: Prisma.ModelName.TitleSlide,
+      TitleSlide: { title: "", subtitle: "" },
+      TitleAndContent: { title: "", content: "" },
+      SectionHeader: { section: "", subsection: "" },
+      TwoContent: { title: "", firstContent: "", secondContent: "" },
+      Comparison: {
+        title: "",
+        firstSubtitle: "",
+        firstComparison: "",
+        secondSubtitle: "",
+        secondComparison: "",
+      },
+      TitleOnly: { title: "" },
+      Blank: {},
+    } satisfies Payload["Slide"][number];
   };
   const form = useForm<Payload>({
     mode: "controlled",
-    initialValues: form_initialValues(),
-    validate: {
-      Slide: {
-        type: (value) =>
-          value === Prisma.ModelName.TitleSlide ||
-          value === Prisma.ModelName.TitleAndContent ||
-          value === Prisma.ModelName.SectionHeader ||
-          value === Prisma.ModelName.TwoContent ||
-          value === Prisma.ModelName.Comparison ||
-          value === Prisma.ModelName.TitleOnly ||
-          value === Prisma.ModelName.Blank
-            ? null
-            : "Invalid",
-      },
-    },
+    initialValues:
+      props.type === "create"
+        ? { title: "", Slide: [form_slide()] }
+        : props.initialValues,
     onValuesChange(values) {
       localStorage.setItem(
         "dashboard_presentation_create_form",
@@ -99,18 +85,10 @@ export default function Create() {
     </AspectRatio>
   );
   const preview_action_addBefore = () => {
-    form.insertListItem(
-      "Slide",
-      form_initialValues().Slide[0],
-      currentSlideIndex[0],
-    );
+    form.insertListItem("Slide", form_slide(), currentSlideIndex[0]);
   };
   const preview_action_addAfter = () => {
-    form.insertListItem(
-      "Slide",
-      form_initialValues().Slide[0],
-      currentSlideIndex[0] + 1,
-    );
+    form.insertListItem("Slide", form_slide(), currentSlideIndex[0] + 1);
     preview_action_next();
   };
   const preview_action_previous = () => {
@@ -169,12 +147,33 @@ export default function Create() {
       </Group>
     </Group>
   );
-  const form_pending = useToggle();
   const preview = (
     <Fieldset legend={`Slide ${currentSlideIndex[0] + 1}`}>
       <Stack>
         {preview_card}
         {preview_action}
+      </Stack>
+    </Fieldset>
+  );
+  const form_pending = useToggle();
+  const presentation = (
+    <Fieldset variant="filled">
+      <Stack>
+        <TextInput
+          required
+          label="Title"
+          key={form.key("title")}
+          {...form.getInputProps("title")}
+        />
+        <Group justify="end">
+          <Button
+            type="submit"
+            loading={form_pending[0]}
+          >
+            {props.type === "create" && "Create"}
+            {props.type === "update" && "Update"}
+          </Button>
+        </Group>
       </Stack>
     </Fieldset>
   );
@@ -359,26 +358,6 @@ export default function Create() {
         {slide_type === Prisma.ModelName.Comparison && slide_comparison}
         {slide_type === Prisma.ModelName.TitleOnly && slide_titleOnly}
         {slide_type === Prisma.ModelName.Blank && <Text c="dimmed">Blank</Text>}
-      </Stack>
-    </Fieldset>
-  );
-  const presentation = (
-    <Fieldset variant="filled">
-      <Stack>
-        <TextInput
-          required
-          label="Title"
-          key={form.key("title")}
-          {...form.getInputProps("title")}
-        />
-        <Group justify="end">
-          <Button
-            type="submit"
-            loading={form_pending[0]}
-          >
-            Create
-          </Button>
-        </Group>
       </Stack>
     </Fieldset>
   );
