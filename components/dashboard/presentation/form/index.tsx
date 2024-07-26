@@ -11,13 +11,13 @@ import {
   Group,
   NativeSelect,
   SimpleGrid,
-  Space,
   Stack,
+  Stepper,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useToggle } from "@mantine/hooks";
+import { useLocalStorage, useToggle } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { Prisma } from "@prisma/client";
 import {
@@ -31,7 +31,7 @@ import { useEffect, useState } from "react";
 type Props = { type: "create" } | { type: "update"; initialValues: Payload };
 
 export default function Form(props: Props) {
-  const form_slide = () => {
+  const form_initialSlide = () => {
     return {
       type: Prisma.ModelName.TitleSlide,
       TitleSlide: { title: "", subtitle: "" },
@@ -49,31 +49,53 @@ export default function Form(props: Props) {
       Blank: {},
     } satisfies Payload["Slide"][number];
   };
+  const form_localStorage = useLocalStorage({
+    key: "dashboard_presentation_create_form_localStorage",
+  });
   const form = useForm<Payload>({
     mode: "controlled",
     initialValues:
       props.type === "create"
-        ? { title: "", Slide: [form_slide()] }
+        ? { title: "", Slide: [form_initialSlide()] }
         : props.initialValues,
     onValuesChange(values) {
-      localStorage.setItem(
-        "dashboard_presentation_create_form",
-        JSON.stringify(values),
-      );
+      form_localStorage[1](JSON.stringify(values));
     },
   });
   useEffect(() => {
-    const values = localStorage.getItem("dashboard_presentation_create_form");
-    if (values) {
+    if (form_localStorage[0]) {
       try {
-        form.setValues(JSON.parse(values));
+        form.setValues(JSON.parse(form_localStorage[0]));
       } catch (error) {
         console.error(error);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [form_localStorage[0]]);
+  const step_activeState = useState(0);
+  const step_next = () => {
+    step_activeState[1]((current) => current + 1);
+  };
+  const step_previous = () => {
+    step_activeState[1]((current) => current - 1);
+  };
+  const presentation = (
+    <Fieldset variant="filled">
+      <Stack>
+        <TextInput
+          required
+          label="Title"
+          key={form.key("title")}
+          {...form.getInputProps("title")}
+        />
+        <Group justify="end">
+          <Button onClick={step_next}>Next</Button>
+        </Group>
+      </Stack>
+    </Fieldset>
+  );
   const currentSlideIndex = useState(0);
+  const preview_currentSlide = form.getValues().Slide[currentSlideIndex[0]];
   const preview_card = (
     <AspectRatio ratio={16 / 9}>
       <Card
@@ -84,18 +106,18 @@ export default function Form(props: Props) {
       </Card>
     </AspectRatio>
   );
-  const preview_action_addBefore = () => {
-    form.insertListItem("Slide", form_slide(), currentSlideIndex[0]);
+  const preview_action_insertBefore = () => {
+    form.insertListItem("Slide", form_initialSlide(), currentSlideIndex[0]);
   };
-  const preview_action_addAfter = () => {
-    form.insertListItem("Slide", form_slide(), currentSlideIndex[0] + 1);
+  const preview_action_insertAfter = () => {
+    form.insertListItem("Slide", form_initialSlide(), currentSlideIndex[0] + 1);
     preview_action_next();
   };
   const preview_action_previous = () => {
-    currentSlideIndex[1]((prev) => prev - 1);
+    currentSlideIndex[1]((current) => current - 1);
   };
   const preview_action_next = () => {
-    currentSlideIndex[1]((prev) => prev + 1);
+    currentSlideIndex[1]((current) => current + 1);
   };
   const preview_action_remove = () => {
     form.removeListItem("Slide", currentSlideIndex[0]);
@@ -116,7 +138,7 @@ export default function Form(props: Props) {
       <Group>
         <ActionIcon
           variant="default"
-          onClick={preview_action_addBefore}
+          onClick={preview_action_insertBefore}
         >
           <IconPlus />
         </ActionIcon>
@@ -140,7 +162,7 @@ export default function Form(props: Props) {
         </ActionIcon.Group>
         <ActionIcon
           variant="default"
-          onClick={preview_action_addAfter}
+          onClick={preview_action_insertAfter}
         >
           <IconPlus />
         </ActionIcon>
@@ -148,34 +170,10 @@ export default function Form(props: Props) {
     </Group>
   );
   const preview = (
-    <Fieldset legend={`Slide ${currentSlideIndex[0] + 1}`}>
-      <Stack>
-        {preview_card}
-        {preview_action}
-      </Stack>
-    </Fieldset>
-  );
-  const form_pending = useToggle();
-  const presentation = (
-    <Fieldset variant="filled">
-      <Stack>
-        <TextInput
-          required
-          label="Title"
-          key={form.key("title")}
-          {...form.getInputProps("title")}
-        />
-        <Group justify="end">
-          <Button
-            type="submit"
-            loading={form_pending[0]}
-          >
-            {props.type === "create" && "Create"}
-            {props.type === "update" && "Update"}
-          </Button>
-        </Group>
-      </Stack>
-    </Fieldset>
+    <Stack>
+      {preview_card}
+      {preview_action}
+    </Stack>
   );
   const slide_selectType = (
     <NativeSelect
@@ -340,27 +338,7 @@ export default function Form(props: Props) {
       {...form.getInputProps(`Slide.${currentSlideIndex[0]}.TitleOnly.title`)}
     />
   );
-  const slide_type = form.getValues().Slide[currentSlideIndex[0]].type;
-  const slide = (
-    <Fieldset
-      legend="Slide"
-      variant="filled"
-    >
-      <Stack>
-        {slide_selectType}
-        <Space />
-        <Divider />
-        {slide_type === Prisma.ModelName.TitleSlide && slide_titleSlide}
-        {slide_type === Prisma.ModelName.TitleAndContent &&
-          slide_titleAndContent}
-        {slide_type === Prisma.ModelName.SectionHeader && slide_sectionHeader}
-        {slide_type === Prisma.ModelName.TwoContent && slide_twoContent}
-        {slide_type === Prisma.ModelName.Comparison && slide_comparison}
-        {slide_type === Prisma.ModelName.TitleOnly && slide_titleOnly}
-        {slide_type === Prisma.ModelName.Blank && <Text c="dimmed">Blank</Text>}
-      </Stack>
-    </Fieldset>
-  );
+  const form_pending = useToggle();
   const form_onSubmit = form.onSubmit(async (values, event) => {
     event?.preventDefault();
     form_pending[1]();
@@ -371,19 +349,63 @@ export default function Form(props: Props) {
       location.reload();
     }
     notifications.show({ message: "OK" });
-    form_pending[1]();
     form.reset();
     currentSlideIndex[1](0);
+    form_pending[1]();
   });
+  const slide = (
+    <Fieldset variant="filled">
+      <Stack>
+        {slide_selectType}
+        <Divider />
+        {preview_currentSlide.type === Prisma.ModelName.TitleSlide &&
+          slide_titleSlide}
+        {preview_currentSlide.type === Prisma.ModelName.TitleAndContent &&
+          slide_titleAndContent}
+        {preview_currentSlide.type === Prisma.ModelName.SectionHeader &&
+          slide_sectionHeader}
+        {preview_currentSlide.type === Prisma.ModelName.TwoContent &&
+          slide_twoContent}
+        {preview_currentSlide.type === Prisma.ModelName.Comparison &&
+          slide_comparison}
+        {preview_currentSlide.type === Prisma.ModelName.TitleOnly &&
+          slide_titleOnly}
+        {preview_currentSlide.type === Prisma.ModelName.Blank && (
+          <Text c="dimmed">Blank</Text>
+        )}
+        <Group justify="end">
+          <Button
+            variant="subtle"
+            onClick={step_previous}
+          >
+            Previous
+          </Button>
+          <Button
+            type="submit"
+            loading={form_pending[0]}
+          >
+            Create
+          </Button>
+        </Group>
+      </Stack>
+    </Fieldset>
+  );
   return (
     <form onSubmit={form_onSubmit}>
-      <SimpleGrid cols={{ base: 1, sm: 2 }}>
-        <Stack>
-          {preview}
-          {presentation}
-        </Stack>
-        {slide}
-      </SimpleGrid>
+      <Stepper
+        active={step_activeState[0]}
+        onStepClick={step_activeState[1]}
+      >
+        <Stepper.Step label="Presentation">
+          <Group justify="center">{presentation}</Group>
+        </Stepper.Step>
+        <Stepper.Step label="Slide">
+          <SimpleGrid cols={{ base: 1, sm: 2 }}>
+            {preview}
+            {slide}
+          </SimpleGrid>
+        </Stepper.Step>
+      </Stepper>
     </form>
   );
 }
