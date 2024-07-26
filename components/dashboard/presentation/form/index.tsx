@@ -26,7 +26,8 @@ import {
   IconMinus,
   IconPlus,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Preview from "./preview";
 
 type Props = { type: "create" } | { type: "update"; initialValues: Payload };
 
@@ -51,27 +52,19 @@ export default function Form(props: Props) {
   };
   const form_localStorage = useLocalStorage({
     key: "dashboard_presentation_create_form_localStorage",
+    defaultValue: JSON.stringify({ title: "", Slide: [form_initialSlide()] }),
+    getInitialValueInEffect: false,
   });
   const form = useForm<Payload>({
     mode: "controlled",
     initialValues:
       props.type === "create"
-        ? { title: "", Slide: [form_initialSlide()] }
+        ? JSON.parse(form_localStorage[0])
         : props.initialValues,
     onValuesChange(values) {
       form_localStorage[1](JSON.stringify(values));
     },
   });
-  useEffect(() => {
-    if (form_localStorage[0]) {
-      try {
-        form.setValues(JSON.parse(form_localStorage[0]));
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form_localStorage[0]]);
   const step_activeState = useState(0);
   const step_next = () => {
     step_activeState[1]((current) => current + 1);
@@ -102,7 +95,7 @@ export default function Form(props: Props) {
         shadow="sm"
         withBorder
       >
-        <Text c="dimmed">Preview</Text>
+        <Preview />
       </Card>
     </AspectRatio>
   );
