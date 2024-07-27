@@ -26,13 +26,12 @@ import {
   IconMinus,
   IconPlus,
 } from "@tabler/icons-react";
-import { useState } from "react";
 import Preview from "./preview";
 
 type Props = { type: "create" } | { type: "update"; initialValues: Payload };
 
 export default function Form(props: Props) {
-  const form_initialSlide = () => {
+  const form_initialSlide: () => Payload["Slide"][number] = () => {
     return {
       type: Prisma.ModelName.TitleSlide,
       TitleSlide: { title: "", subtitle: "" },
@@ -48,29 +47,31 @@ export default function Form(props: Props) {
       },
       TitleOnly: { title: "" },
       Blank: {},
-    } satisfies Payload["Slide"][number];
+    };
   };
-  const form_localStorage = useLocalStorage({
+  const form_localStorage = useLocalStorage<Payload>({
     key: "dashboard_presentation_create_form_localStorage",
-    defaultValue: JSON.stringify({ title: "", Slide: [form_initialSlide()] }),
+    defaultValue: { title: "Untitled", Slide: [form_initialSlide()] },
     getInitialValueInEffect: false,
   });
   const form = useForm<Payload>({
-    mode: "controlled",
+    mode: "uncontrolled",
     initialValues:
-      props.type === "create"
-        ? JSON.parse(form_localStorage[0])
-        : props.initialValues,
+      props.type === "create" ? form_localStorage[0] : props.initialValues,
     onValuesChange(values) {
-      form_localStorage[1](JSON.stringify(values));
+      form_localStorage[1](values);
     },
   });
-  const step_activeState = useState(0);
+  const step_localStorage = useLocalStorage({
+    key: "dashboard_presentation_create_step_localStorage",
+    defaultValue: 0,
+    getInitialValueInEffect: false,
+  });
   const step_next = () => {
-    step_activeState[1]((current) => current + 1);
+    step_localStorage[1](step_localStorage[0] + 1);
   };
   const step_previous = () => {
-    step_activeState[1]((current) => current - 1);
+    step_localStorage[1](step_localStorage[0] - 1);
   };
   const presentation = (
     <Fieldset variant="filled">
@@ -87,9 +88,13 @@ export default function Form(props: Props) {
       </Stack>
     </Fieldset>
   );
-  const currentSlideIndex = useState(0);
-  const preview_currentSlide = form.getValues().Slide[currentSlideIndex[0]];
-  const preview_card = (
+  const slide_localStorage = useLocalStorage({
+    key: "dashboard_presentation_create_slide_localStorage",
+    defaultValue: 0,
+    getInitialValueInEffect: false,
+  });
+  const slide_currentSlide = form.getValues().Slide[slide_localStorage[0]];
+  const slide_preview = (
     <AspectRatio ratio={16 / 9}>
       <Card
         shadow="sm"
@@ -99,74 +104,72 @@ export default function Form(props: Props) {
       </Card>
     </AspectRatio>
   );
-  const preview_action_insertBefore = () => {
-    form.insertListItem("Slide", form_initialSlide(), currentSlideIndex[0]);
+  const slide_preview_action_insertBefore = () => {
+    form.insertListItem("Slide", form_initialSlide(), slide_localStorage[0]);
   };
-  const preview_action_insertAfter = () => {
-    form.insertListItem("Slide", form_initialSlide(), currentSlideIndex[0] + 1);
-    preview_action_next();
+  const slide_preview_action_insertAfter = () => {
+    form.insertListItem(
+      "Slide",
+      form_initialSlide(),
+      slide_localStorage[0] + 1,
+    );
+    slide_preview_action_next();
   };
-  const preview_action_previous = () => {
-    currentSlideIndex[1]((current) => current - 1);
+  const slide_preview_action_previous = () => {
+    slide_localStorage[1](slide_localStorage[0] - 1);
   };
-  const preview_action_next = () => {
-    currentSlideIndex[1]((current) => current + 1);
+  const slide_preview_action_next = () => {
+    slide_localStorage[1](slide_localStorage[0] + 1);
   };
-  const preview_action_remove = () => {
-    form.removeListItem("Slide", currentSlideIndex[0]);
-    if (!form.getValues().Slide[currentSlideIndex[0]]) {
-      preview_action_previous();
+  const slide_preview_action_remove = () => {
+    form.removeListItem("Slide", slide_localStorage[0]);
+    if (!form.getValues().Slide[slide_localStorage[0]]) {
+      slide_preview_action_previous();
     }
   };
-  const preview_action = (
+  const slide_preview_action = (
     <Group justify="space-between">
       <ActionIcon
         variant="light"
         color="red"
         disabled={form.getValues().Slide.length === 1}
-        onClick={preview_action_remove}
+        onClick={slide_preview_action_remove}
       >
         <IconMinus />
       </ActionIcon>
       <Group>
         <ActionIcon
           variant="default"
-          onClick={preview_action_insertBefore}
+          onClick={slide_preview_action_insertBefore}
         >
           <IconPlus />
         </ActionIcon>
         <ActionIcon.Group>
           <ActionIcon
             variant="light"
-            disabled={currentSlideIndex[0] === 0}
-            onClick={preview_action_previous}
+            disabled={slide_localStorage[0] === 0}
+            onClick={slide_preview_action_previous}
           >
             <IconCaretLeft />
           </ActionIcon>
           <ActionIcon
             variant="light"
             disabled={
-              currentSlideIndex[0] === form.getValues().Slide.length - 1
+              slide_localStorage[0] === form.getValues().Slide.length - 1
             }
-            onClick={preview_action_next}
+            onClick={slide_preview_action_next}
           >
             <IconCaretRight />
           </ActionIcon>
         </ActionIcon.Group>
         <ActionIcon
           variant="default"
-          onClick={preview_action_insertAfter}
+          onClick={slide_preview_action_insertAfter}
         >
           <IconPlus />
         </ActionIcon>
       </Group>
     </Group>
-  );
-  const preview = (
-    <Stack>
-      {preview_card}
-      {preview_action}
-    </Stack>
   );
   const slide_selectType = (
     <NativeSelect
@@ -181,8 +184,8 @@ export default function Form(props: Props) {
         { value: Prisma.ModelName.TitleOnly, label: "Title Only" },
         { value: Prisma.ModelName.Blank, label: "Blank" },
       ]}
-      key={form.key(`Slide.${currentSlideIndex[0]}.type`)}
-      {...form.getInputProps(`Slide.${currentSlideIndex[0]}.type`)}
+      key={form.key(`Slide.${slide_localStorage[0]}.type`)}
+      {...form.getInputProps(`Slide.${slide_localStorage[0]}.type`)}
     />
   );
   const slide_titleSlide = (
@@ -190,17 +193,17 @@ export default function Form(props: Props) {
       <TextInput
         required
         label="Title"
-        key={form.key(`Slide.${currentSlideIndex[0]}.TitleSlide.title`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.TitleSlide.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.TitleSlide.title`,
+          `Slide.${slide_localStorage[0]}.TitleSlide.title`,
         )}
       />
       <TextInput
         required
         label="Subtitle"
-        key={form.key(`Slide.${currentSlideIndex[0]}.TitleSlide.subtitle`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.TitleSlide.subtitle`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.TitleSlide.subtitle`,
+          `Slide.${slide_localStorage[0]}.TitleSlide.subtitle`,
         )}
       />
     </>
@@ -210,17 +213,17 @@ export default function Form(props: Props) {
       <TextInput
         required
         label="Title"
-        key={form.key(`Slide.${currentSlideIndex[0]}.TitleAndContent.title`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.TitleAndContent.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.TitleAndContent.title`,
+          `Slide.${slide_localStorage[0]}.TitleAndContent.title`,
         )}
       />
       <TextInput
         required
         label="Content"
-        key={form.key(`Slide.${currentSlideIndex[0]}.TitleAndContent.content`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.TitleAndContent.content`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.TitleAndContent.content`,
+          `Slide.${slide_localStorage[0]}.TitleAndContent.content`,
         )}
       />
     </>
@@ -230,17 +233,19 @@ export default function Form(props: Props) {
       <TextInput
         required
         label="Section"
-        key={form.key(`Slide.${currentSlideIndex[0]}.SectionHeader.section`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.SectionHeader.section`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.SectionHeader.section`,
+          `Slide.${slide_localStorage[0]}.SectionHeader.section`,
         )}
       />
       <TextInput
         required
         label="Subsection"
-        key={form.key(`Slide.${currentSlideIndex[0]}.SectionHeader.subsection`)}
+        key={form.key(
+          `Slide.${slide_localStorage[0]}.SectionHeader.subsection`,
+        )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.SectionHeader.subsection`,
+          `Slide.${slide_localStorage[0]}.SectionHeader.subsection`,
         )}
       />
     </>
@@ -250,25 +255,27 @@ export default function Form(props: Props) {
       <TextInput
         required
         label="Title"
-        key={form.key(`Slide.${currentSlideIndex[0]}.TwoContent.title`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.TwoContent.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.TwoContent.title`,
+          `Slide.${slide_localStorage[0]}.TwoContent.title`,
         )}
       />
       <TextInput
         required
         label="First content"
-        key={form.key(`Slide.${currentSlideIndex[0]}.TwoContent.firstContent`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.TwoContent.firstContent`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.TwoContent.firstContent`,
+          `Slide.${slide_localStorage[0]}.TwoContent.firstContent`,
         )}
       />
       <TextInput
         required
         label="Second content"
-        key={form.key(`Slide.${currentSlideIndex[0]}.TwoContent.secondContent`)}
+        key={form.key(
+          `Slide.${slide_localStorage[0]}.TwoContent.secondContent`,
+        )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.TwoContent.secondContent`,
+          `Slide.${slide_localStorage[0]}.TwoContent.secondContent`,
         )}
       />
     </>
@@ -278,47 +285,49 @@ export default function Form(props: Props) {
       <TextInput
         required
         label="Title"
-        key={form.key(`Slide.${currentSlideIndex[0]}.Comparison.title`)}
+        key={form.key(`Slide.${slide_localStorage[0]}.Comparison.title`)}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.Comparison.title`,
+          `Slide.${slide_localStorage[0]}.Comparison.title`,
         )}
       />
       <TextInput
         required
         label="First subtitle"
-        key={form.key(`Slide.${currentSlideIndex[0]}.Comparison.firstSubtitle`)}
+        key={form.key(
+          `Slide.${slide_localStorage[0]}.Comparison.firstSubtitle`,
+        )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.Comparison.firstSubtitle`,
+          `Slide.${slide_localStorage[0]}.Comparison.firstSubtitle`,
         )}
       />
       <TextInput
         required
         label="First comparison"
         key={form.key(
-          `Slide.${currentSlideIndex[0]}.Comparison.firstComparison`,
+          `Slide.${slide_localStorage[0]}.Comparison.firstComparison`,
         )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.Comparison.firstComparison`,
+          `Slide.${slide_localStorage[0]}.Comparison.firstComparison`,
         )}
       />
       <TextInput
         required
         label="Second subtitle"
         key={form.key(
-          `Slide.${currentSlideIndex[0]}.Comparison.secondSubtitle`,
+          `Slide.${slide_localStorage[0]}.Comparison.secondSubtitle`,
         )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.Comparison.secondSubtitle`,
+          `Slide.${slide_localStorage[0]}.Comparison.secondSubtitle`,
         )}
       />
       <TextInput
         required
         label="Second comparison"
         key={form.key(
-          `Slide.${currentSlideIndex[0]}.Comparison.secondComparison`,
+          `Slide.${slide_localStorage[0]}.Comparison.secondComparison`,
         )}
         {...form.getInputProps(
-          `Slide.${currentSlideIndex[0]}.Comparison.secondComparison`,
+          `Slide.${slide_localStorage[0]}.Comparison.secondComparison`,
         )}
       />
     </>
@@ -327,8 +336,8 @@ export default function Form(props: Props) {
     <TextInput
       required
       label="Title"
-      key={form.key(`Slide.${currentSlideIndex[0]}.TitleOnly.title`)}
-      {...form.getInputProps(`Slide.${currentSlideIndex[0]}.TitleOnly.title`)}
+      key={form.key(`Slide.${slide_localStorage[0]}.TitleOnly.title`)}
+      {...form.getInputProps(`Slide.${slide_localStorage[0]}.TitleOnly.title`)}
     />
   );
   const form_pending = useToggle();
@@ -341,29 +350,31 @@ export default function Form(props: Props) {
       alert(error);
       location.reload();
     }
-    notifications.show({ message: "OK" });
+    form_localStorage[2]();
+    step_localStorage[2]();
+    slide_localStorage[2]();
     form.reset();
-    currentSlideIndex[1](0);
+    notifications.show({ message: "OK" });
     form_pending[1]();
   });
   const slide = (
-    <Fieldset variant="filled">
+    <Fieldset>
       <Stack>
         {slide_selectType}
         <Divider />
-        {preview_currentSlide.type === Prisma.ModelName.TitleSlide &&
+        {slide_currentSlide.type === Prisma.ModelName.TitleSlide &&
           slide_titleSlide}
-        {preview_currentSlide.type === Prisma.ModelName.TitleAndContent &&
+        {slide_currentSlide.type === Prisma.ModelName.TitleAndContent &&
           slide_titleAndContent}
-        {preview_currentSlide.type === Prisma.ModelName.SectionHeader &&
+        {slide_currentSlide.type === Prisma.ModelName.SectionHeader &&
           slide_sectionHeader}
-        {preview_currentSlide.type === Prisma.ModelName.TwoContent &&
+        {slide_currentSlide.type === Prisma.ModelName.TwoContent &&
           slide_twoContent}
-        {preview_currentSlide.type === Prisma.ModelName.Comparison &&
+        {slide_currentSlide.type === Prisma.ModelName.Comparison &&
           slide_comparison}
-        {preview_currentSlide.type === Prisma.ModelName.TitleOnly &&
+        {slide_currentSlide.type === Prisma.ModelName.TitleOnly &&
           slide_titleOnly}
-        {preview_currentSlide.type === Prisma.ModelName.Blank && (
+        {slide_currentSlide.type === Prisma.ModelName.Blank && (
           <Text c="dimmed">Blank</Text>
         )}
         <Group justify="end">
@@ -386,15 +397,19 @@ export default function Form(props: Props) {
   return (
     <form onSubmit={form_onSubmit}>
       <Stepper
-        active={step_activeState[0]}
-        onStepClick={step_activeState[1]}
+        styles={{ steps: { display: "none" } }}
+        active={step_localStorage[0]}
+        onStepClick={step_localStorage[1]}
       >
-        <Stepper.Step label="Presentation">
+        <Stepper.Step>
           <Group justify="center">{presentation}</Group>
         </Stepper.Step>
-        <Stepper.Step label="Slide">
+        <Stepper.Step>
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
-            {preview}
+            <Stack>
+              {slide_preview}
+              {slide_preview_action}
+            </Stack>
             {slide}
           </SimpleGrid>
         </Stepper.Step>
