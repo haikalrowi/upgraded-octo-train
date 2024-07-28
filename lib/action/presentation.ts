@@ -69,5 +69,4 @@ async function createPresentation(payload: Payload) {
   });
 }
 
-export { createPresentation };
-export type { Payload };
+export { createPresentation, type Payload };

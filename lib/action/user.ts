@@ -9,18 +9,29 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export async function userLogin(email: string, password: string) {
+type Payload = Prisma.UserGetPayload<{
+  select: { email: boolean; Password: { select: { password: boolean } } };
+}>;
+
+async function userLogin(payload: Payload) {
+  if (!payload.email || !payload.Password?.password) {
+    throw [payload.email, payload.Password?.password];
+  }
   const user = await prisma.user.findUniqueOrThrow({
     where: {
-      email,
-      Password: { password: scryptPassword(password, process.env.SALT!) },
+      email: payload.email,
+      Password: {
+        password: scryptPassword(payload.Password.password, process.env.SALT!),
+      },
     },
   });
   cookies().set(Prisma.ModelName.User, await jwtSign({ userId: user.id }));
   revalidatePath(route.dashboard_home);
 }
 
-export async function userLogout() {
+async function userLogout() {
   cookies().delete(Prisma.ModelName.User);
   redirect(route.dashboard_home);
 }
+
+export { userLogin, userLogout, type Payload };

@@ -1,6 +1,6 @@
 "use client";
 
-import { userLogin } from "@/lib/action/user";
+import { Payload, userLogin } from "@/lib/action/user";
 import {
   Button,
   Center,
@@ -13,20 +13,23 @@ import { useForm } from "@mantine/form";
 import { useToggle } from "@mantine/hooks";
 
 export default function Login() {
-  const form = useForm<{ email: string; password: string }>({
+  const form_initialValues: Payload = { email: "", Password: { password: "" } };
+  const form = useForm<Payload>({
     mode: "uncontrolled",
+    initialValues: form_initialValues,
   });
-  const pending = useToggle();
+  const form_pending = useToggle();
   const form_onSubmit = form.onSubmit(async (values, event) => {
     event?.preventDefault();
-    pending[1]();
+    form_pending[1]();
     try {
-      await userLogin(values.email, values.password);
+      await userLogin(values);
     } catch (error) {
       alert(error);
       location.reload();
     }
-    pending[1]();
+    form.reset();
+    form_pending[1]();
   });
   return (
     <form onSubmit={form_onSubmit}>
@@ -44,12 +47,12 @@ export default function Login() {
             <PasswordInput
               required
               label="Password"
-              key={form.key("password")}
-              {...form.getInputProps("password")}
+              key={form.key("Password.password")}
+              {...form.getInputProps("Password.password")}
             />
             <Button
               type="submit"
-              loading={pending[0]}
+              loading={form_pending[0]}
             >
               Login
             </Button>

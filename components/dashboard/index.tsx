@@ -31,8 +31,6 @@ export default function Dashboard({
   children,
   ...props
 }: React.PropsWithChildren & { user: Prisma.UserGetPayload<{}> }) {
-  const [opened, { toggle }] = useDisclosure();
-  const { toggleColorScheme } = useMantineColorScheme();
   const header_logo = (
     <ThemeIcon variant="transparent">
       <IconCopyright />
@@ -41,6 +39,8 @@ export default function Dashboard({
   const header_logout = async () => {
     await userLogout();
   };
+  const [opened, { toggle }] = useDisclosure();
+  const { toggleColorScheme } = useMantineColorScheme();
   const header = (
     <AppShell.Header p="md">
       <Group
@@ -101,27 +101,27 @@ export default function Dashboard({
       </Group>
     </AppShell.Header>
   );
-  const pathname = usePathname();
+  const navbar_pathname = usePathname();
   const navbar = (
     <AppShell.Navbar p="md">
       <AppShell.Section
         component={ScrollArea}
         grow
       >
-        {pathname.startsWith(route.dashboard_presentation_home) && (
+        {navbar_pathname.startsWith(route.dashboard_presentation_home) && (
           <>
             <NavLink
               component={Link}
               href={route.dashboard_presentation_create}
               label="Create"
-              active={pathname === route.dashboard_presentation_create}
+              active={navbar_pathname === route.dashboard_presentation_create}
               onClick={toggle}
             />
             <NavLink
               component={Link}
               href={route.dashboard_presentation_update}
               label="Update"
-              active={pathname === route.dashboard_presentation_update}
+              active={navbar_pathname === route.dashboard_presentation_update}
               onClick={toggle}
             />
           </>
@@ -129,9 +129,10 @@ export default function Dashboard({
       </AppShell.Section>
     </AppShell.Navbar>
   );
+  const main = <AppShell.Main>{children}</AppShell.Main>;
   const fullScreenState = useToggle();
   const toggleFullScreen = () => {
-    fullScreenState[1]((state) => !state);
+    fullScreenState[1](!fullScreenState[0]);
   };
   return (
     <>
@@ -147,7 +148,7 @@ export default function Dashboard({
       >
         {header}
         {navbar}
-        <AppShell.Main>{children}</AppShell.Main>
+        {main}
       </AppShell>
       <Affix position={{ bottom: 16 * 1, right: 16 * 1 }}>
         <ActionIcon
