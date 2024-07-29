@@ -1,36 +1,56 @@
 import { Payload } from "@/lib/action/presentation";
 import { Prisma } from "@prisma/client";
+import Konva from "konva";
 import { useEffect, useRef } from "react";
+import { Layer, Rect, Stage, Text } from "react-konva";
 
 type Props = {
   slide: Payload["Slide"][number];
 };
 
 export default function Preview(props: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const stage_ref = useRef<Konva.Stage>(null);
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
-    const dpr = window.devicePixelRatio;
-    const initialize = () => {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
+    const stage = stage_ref.current!;
+    const stage_setFullContainer = () => {
+      const { width, height } = stage.container().getBoundingClientRect();
+      stage.width(width);
+      stage.height(height);
     };
-    const main = () => {
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-      ctx.fillStyle = "black";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+    stage_setFullContainer();
+    const resizeObserver = new ResizeObserver(stage_setFullContainer);
+    resizeObserver.observe(stage.container());
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+  const slide_effect_deps = JSON.stringify(props);
+  const slide_background_ref = useRef<Konva.Rect>(null);
+  useEffect(() => {
+    const stage = stage_ref.current!;
+    const slide_background = slide_background_ref.current!;
+    slide_background.width(stage.width());
+    slide_background.height(stage.height());
+    slide_background.fill("white");
+  }, [slide_effect_deps]);
+  const slide_titleSlide_title_ref = useRef<Konva.Text>(null);
+  const slide_titleSlide_subtitle_ref = useRef<Konva.Text>(null);
+  useEffect(() => {
+    const stage = stage_ref.current!;
+    const slide_setPosition = () => {
       switch (props.slide.type) {
         case Prisma.ModelName.TitleSlide:
-          ctx.fillText(
-            props.slide.TitleSlide?.title!,
-            canvas.width / (2 * dpr),
-            canvas.height / (2 * dpr),
-          );
+          const text = slide_titleSlide_title_ref.current!;
+          const subtitle = slide_titleSlide_subtitle_ref.current!;
+          text.width(stage.width());
+          text.height(stage.height() / 2);
+          text.align("center");
+          text.verticalAlign("middle");
+          subtitle.y(stage.height() / 2);
+          subtitle.width(stage.width());
+          subtitle.height(stage.height() / 2);
+          subtitle.align("center");
+          subtitle.verticalAlign("middle");
           break;
         case Prisma.ModelName.TitleAndContent:
           break;
@@ -38,27 +58,33 @@ export default function Preview(props: Props) {
           break;
       }
     };
-
-    initialize();
-    main();
-
-    const resizeObserver = new ResizeObserver(() => {
-      ctx.reset();
-      initialize();
-      main();
-    });
-
-    resizeObserver.observe(canvas);
-
+    slide_setPosition();
+    const resizeObserver = new ResizeObserver(slide_setPosition);
+    resizeObserver.observe(stage.container());
     return () => {
-      ctx.reset();
       resizeObserver.disconnect();
     };
-  }, [props]);
+  }, [slide_effect_deps]);
   return (
-    <canvas
+    <Stage
       style={{ width: "100%", height: "100%" }}
-      ref={canvasRef}
-    />
+      ref={stage_ref}
+    >
+      <Layer>
+        <Rect ref={slide_background_ref} />
+        {props.slide.type === Prisma.ModelName.TitleSlide && (
+          <>
+            <Text
+              text={props.slide.TitleSlide?.title}
+              ref={slide_titleSlide_title_ref}
+            />
+            <Text
+              text={props.slide.TitleSlide?.subtitle}
+              ref={slide_titleSlide_subtitle_ref}
+            />
+          </>
+        )}
+      </Layer>
+    </Stage>
   );
 }
