@@ -51,7 +51,7 @@ model TitleSlide {
   id       String @id @default(cuid()) @map("_id")
   title    String
   subtitle String
-  Slide    Slide  @relation(fields: [slideId], references: [id])
+  Slide    Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
   slideId  String @unique
 }
 
@@ -59,7 +59,7 @@ model TitleAndContent {
   id      String @id @default(cuid()) @map("_id")
   title   String
   content String
-  Slide   Slide  @relation(fields: [slideId], references: [id])
+  Slide   Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
   slideId String @unique
 }
 
@@ -67,7 +67,7 @@ model SectionHeader {
   id         String @id @default(cuid()) @map("_id")
   section    String
   subsection String
-  Slide      Slide  @relation(fields: [slideId], references: [id])
+  Slide      Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
   slideId    String @unique
 }
 
@@ -76,7 +76,7 @@ model TwoContent {
   title         String
   firstContent  String
   secondContent String
-  Slide         Slide  @relation(fields: [slideId], references: [id])
+  Slide         Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
   slideId       String @unique
 }
 
@@ -87,19 +87,19 @@ model Comparison {
   firstComparison  String
   secondSubtitle   String
   secondComparison String
-  Slide            Slide  @relation(fields: [slideId], references: [id])
+  Slide            Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
   slideId          String @unique
 }
 
 model TitleOnly {
   id      String @id @default(cuid()) @map("_id")
   title   String
-  Slide   Slide  @relation(fields: [slideId], references: [id])
+  Slide   Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
   slideId String @unique
 }
 
 model Blank {
   id      String @id @default(cuid()) @map("_id")
-  Slide   Slide  @relation(fields: [slideId], references: [id])
+  Slide   Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
   slideId String @unique
 }

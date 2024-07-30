@@ -5,9 +5,9 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 
-export default async function Dashboard_Layout({
-  children,
-}: React.PropsWithChildren) {
+type Props = React.PropsWithChildren;
+
+export default async function Dashboard_Layout({ children }: Props) {
   const jwt = cookies().get(Prisma.ModelName.User)?.value;
   try {
     if (!jwt) throw [{ jwt }];

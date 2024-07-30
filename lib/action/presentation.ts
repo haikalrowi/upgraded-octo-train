@@ -1,43 +1,17 @@
 "use server";
 
+import {
+  Payload,
+  validateSlideType,
+} from "@/components/dashboard/presentation/form/_payload";
 import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { jwtVerify } from "../jose";
 import prisma from "../prisma";
+import route from "../route";
 
-type Payload = Prisma.PresentationGetPayload<{
-  select: {
-    title: boolean;
-    Slide: {
-      select: {
-        type: boolean;
-        TitleSlide: { select: { title: boolean; subtitle: boolean } };
-        TitleAndContent: { select: { title: boolean; content: boolean } };
-        SectionHeader: { select: { section: boolean; subsection: boolean } };
-        TwoContent: {
-          select: {
-            title: boolean;
-            firstContent: boolean;
-            secondContent: boolean;
-          };
-        };
-        Comparison: {
-          select: {
-            title: boolean;
-            firstSubtitle: boolean;
-            firstComparison: boolean;
-            secondSubtitle: boolean;
-            secondComparison: boolean;
-          };
-        };
-        TitleOnly: { select: { title: boolean } };
-        Blank: { select: {} };
-      };
-    };
-  };
-}>;
-
-async function createPresentation(payload: Payload) {
+async function createPresentation(payload: Pick<Payload, "title" | "Slide">) {
   const jwt = cookies().get(Prisma.ModelName.User)?.value;
   if (!jwt) throw [{ jwt }];
   const { userId } = await jwtVerify(jwt);
@@ -46,27 +20,43 @@ async function createPresentation(payload: Payload) {
       title: payload.title,
       Slide: {
         create: payload.Slide.map((slide, index) => {
-          if (
-            slide.type !== Prisma.ModelName.TitleSlide &&
-            slide.type !== Prisma.ModelName.TitleAndContent &&
-            slide.type !== Prisma.ModelName.SectionHeader &&
-            slide.type !== Prisma.ModelName.TwoContent &&
-            slide.type !== Prisma.ModelName.Comparison &&
-            slide.type !== Prisma.ModelName.TitleOnly &&
-            slide.type !== Prisma.ModelName.Blank
-          ) {
-            throw [slide.type];
-          }
+          const type = validateSlideType(slide.type);
           return {
             index,
-            type: slide.type,
-            [slide.type]: { create: slide[slide.type] ?? undefined },
+            type,
+            [type]: { create: type === "Blank" ? {} : slide[type] },
           };
         }),
       },
       User: { connect: { id: userId } },
     },
   });
+  revalidatePath(route.dashboard_presentation_home);
 }
 
-export { createPresentation, type Payload };
+async function updatePresentation(payload: Payload) {
+  const jwt = cookies().get(Prisma.ModelName.User)?.value;
+  if (!jwt) throw [{ jwt }];
+  const { userId } = await jwtVerify(jwt);
+  await prisma.presentation.update({
+    where: { id: payload.id },
+    data: {
+      title: payload.title,
+      Slide: {
+        deleteMany: {},
+        create: payload.Slide.map((slide, index) => {
+          const type = validateSlideType(slide.type);
+          return {
+            index,
+            type,
+            [type]: { create: type === "Blank" ? {} : slide[type] },
+          };
+        }),
+      },
+      User: { connect: { id: userId } },
+    },
+  });
+  revalidatePath(route.dashboard_presentation_home);
+}
+
+export { createPresentation, updatePresentation };

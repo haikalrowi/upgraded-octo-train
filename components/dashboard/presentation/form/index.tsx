@@ -1,6 +1,10 @@
 "use client";
 
-import { createPresentation, Payload } from "@/lib/action/presentation";
+import {
+  createPresentation,
+  updatePresentation,
+} from "@/lib/action/presentation";
+import route from "@/lib/route";
 import {
   ActionIcon,
   AspectRatio,
@@ -17,7 +21,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useLocalStorage, useToggle } from "@mantine/hooks";
+import { useSessionStorage, useToggle } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { Prisma } from "@prisma/client";
 import {
@@ -27,7 +31,9 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Payload, validateSlideType } from "./_payload";
 
 const Preview = dynamic(() => import("./preview"), { ssr: false });
 
@@ -49,15 +55,27 @@ export default function Form(props: Props) {
         secondComparison: "",
       },
       TitleOnly: { title: "" },
-      Blank: {},
+      Blank: null,
     };
   };
   const form_initialValues: Payload =
     props.type === "create"
-      ? { title: "Untitled", Slide: [form_initialSlide()] }
-      : props.initialValues;
-  const form_values_localStorage = useLocalStorage<Payload>({
-    key: "dashboard_presentation_create_form_values",
+      ? { id: "", title: "Untitled", Slide: [form_initialSlide()] }
+      : {
+          id: props.initialValues.id,
+          title: props.initialValues.title,
+          Slide: props.initialValues.Slide.map((slide) => {
+            const type = validateSlideType(slide.type);
+            return {
+              ...form_initialSlide(),
+              type,
+              [type]: type === "Blank" ? null : slide[type],
+            };
+          }),
+        };
+  const pathname = usePathname();
+  const form_values_localStorage = useSessionStorage<Payload>({
+    key: `${pathname}_form_values`,
   });
   const form = useForm<Payload>({
     initialValues: form_initialValues,
@@ -67,11 +85,11 @@ export default function Form(props: Props) {
   });
   const form_effect_deps = JSON.stringify(form_values_localStorage[0]);
   useEffect(() => {
-    if (props.type === "update" || !form_values_localStorage[0]) return;
+    if (!form_values_localStorage[0]) return;
     form.setValues(form_values_localStorage[0]);
   }, [form_effect_deps]);
-  const step_index_localStorage = useLocalStorage({
-    key: "dashboard_presentation_create_step_index",
+  const step_index_localStorage = useSessionStorage({
+    key: `${pathname}_step_index`,
     defaultValue: 0,
   });
   const step_next = () => {
@@ -95,8 +113,8 @@ export default function Form(props: Props) {
       </Stack>
     </Fieldset>
   );
-  const slide_index_localStorage = useLocalStorage({
-    key: "dashboard_presentation_create_slide_index",
+  const slide_index_localStorage = useSessionStorage({
+    key: `${pathname}_slide_index`,
     defaultValue: 0,
   });
   const slide_index = useState(slide_index_localStorage[0]);
@@ -362,21 +380,31 @@ export default function Form(props: Props) {
       </Stack>
     </Fieldset>
   );
+  const router = useRouter();
   const form_onSubmit = form.onSubmit(async (values, event) => {
     event?.preventDefault();
     form_pending[1]();
     try {
-      await createPresentation(values);
+      if (props.type === "create") {
+        await createPresentation(values);
+      } else if (props.type === "update") {
+        await updatePresentation(values);
+      }
     } catch (error) {
       alert(error);
-      location.reload();
+      router.refresh();
     }
+    form_values_localStorage[2]();
     step_index_localStorage[2]();
-    step_index_localStorage[1](0);
     slide_index_localStorage[2]();
-    slide_index_localStorage[1](0);
-    form.setInitialValues(form_initialValues);
-    form.reset();
+    if (props.type === "create") {
+      step_index_localStorage[1](0);
+      slide_index_localStorage[1](0);
+      form.setInitialValues(form_initialValues);
+      form.reset();
+    } else if (props.type === "update") {
+      router.replace(route.dashboard_presentation_update);
+    }
     notifications.show({ message: "OK" });
     form_pending[1]();
   });

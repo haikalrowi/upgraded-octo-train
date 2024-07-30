@@ -27,10 +27,11 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function Dashboard({
-  children,
-  ...props
-}: React.PropsWithChildren & { user: Prisma.UserGetPayload<{}> }) {
+type Props = React.PropsWithChildren & {
+  user: Prisma.UserGetPayload<{}>;
+};
+
+export default function Dashboard(props: Props) {
   const header_logo = (
     <ThemeIcon variant="transparent">
       <IconCopyright />
@@ -114,14 +115,18 @@ export default function Dashboard({
               component={Link}
               href={route.dashboard_presentation_create}
               label="Create"
-              active={navbar_pathname === route.dashboard_presentation_create}
+              active={navbar_pathname.includes(
+                route.dashboard_presentation_create,
+              )}
               onClick={toggle}
             />
             <NavLink
               component={Link}
               href={route.dashboard_presentation_update}
               label="Update"
-              active={navbar_pathname === route.dashboard_presentation_update}
+              active={navbar_pathname.includes(
+                route.dashboard_presentation_update,
+              )}
               onClick={toggle}
             />
           </>
@@ -129,7 +134,7 @@ export default function Dashboard({
       </AppShell.Section>
     </AppShell.Navbar>
   );
-  const main = <AppShell.Main>{children}</AppShell.Main>;
+  const main = <AppShell.Main>{props.children}</AppShell.Main>;
   const fullScreenState = useToggle();
   const toggleFullScreen = () => {
     fullScreenState[1](!fullScreenState[0]);
