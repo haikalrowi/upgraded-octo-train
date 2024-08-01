@@ -7,9 +7,7 @@ import {
 import route from "@/lib/route";
 import {
   ActionIcon,
-  AspectRatio,
   Button,
-  Card,
   Divider,
   Fieldset,
   Group,
@@ -83,11 +81,11 @@ export default function Form(props: Props) {
       form_values_localStorage[1](values);
     },
   });
-  const form_effect_deps = JSON.stringify(form_values_localStorage[0]);
+  const form_setEffect_deps = JSON.stringify(form_values_localStorage[0]);
   useEffect(() => {
     if (!form_values_localStorage[0]) return;
     form.setValues(form_values_localStorage[0]);
-  }, [form_effect_deps]);
+  }, [form_setEffect_deps]);
   const step_index_localStorage = useSessionStorage({
     key: `${pathname}_step_index`,
     defaultValue: 0,
@@ -118,28 +116,15 @@ export default function Form(props: Props) {
     defaultValue: 0,
   });
   const slide_index = useState(slide_index_localStorage[0]);
-  const slide_index_effect_deps = slide_index_localStorage[0];
-  useEffect(() => {
-    slide_index[1](slide_index_localStorage[0]);
-  }, [form_effect_deps, slide_index_effect_deps]);
   const slide_current = useState(
     form.getValues().Slide[slide_index_localStorage[0]],
   );
-  const slide_current_effect_deps = slide_index_localStorage[0];
+  const slide_index_setEffect_deps = slide_index_localStorage[0];
   useEffect(() => {
+    slide_index[1](slide_index_localStorage[0]);
     slide_current[1](form.getValues().Slide[slide_index_localStorage[0]]);
-  }, [form_effect_deps, slide_current_effect_deps]);
-  const slide_preview = (
-    <AspectRatio ratio={16 / 9}>
-      <Card
-        shadow="sm"
-        withBorder
-        padding={0}
-      >
-        <Preview slide={slide_current[0]} />
-      </Card>
-    </AspectRatio>
-  );
+  }, [form_setEffect_deps, slide_index_setEffect_deps]);
+  const slide_preview = <Preview slide={slide_current[0]} />;
   const slide_preview_action_insertAfter = () => {
     form.insertListItem("Slide", form_initialSlide(), slide_index[0] + 1);
     slide_preview_action_next();
@@ -374,7 +359,8 @@ export default function Form(props: Props) {
             type="submit"
             loading={form_pending[0]}
           >
-            Create
+            {props.type === "create" && "Create"}
+            {props.type === "update" && "Update"}
           </Button>
         </Group>
       </Stack>

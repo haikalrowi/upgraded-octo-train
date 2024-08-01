@@ -1,3 +1,5 @@
+import { AspectRatio, Card } from "@mantine/core";
+import { useElementSize } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
 import Konva from "konva";
 import { useEffect, useRef } from "react";
@@ -7,106 +9,100 @@ import { Payload } from "./_payload";
 type Props = { slide: Payload["Slide"][number] };
 
 export default function Preview(props: Props) {
+  const { ref, width, height } = useElementSize();
   const stage_ref = useRef<Konva.Stage>(null);
+  const effect_deps = JSON.stringify(props);
   useEffect(() => {
-    const stage = stage_ref.current!;
-    const stage_setFullContainer = () => {
-      const { width, height } = stage.container().getBoundingClientRect();
-      stage.width(width);
-      stage.height(height);
-    };
-    stage_setFullContainer();
-    const resizeObserver = new ResizeObserver(stage_setFullContainer);
-    resizeObserver.observe(stage.container());
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-  const slide_effect_deps = JSON.stringify(props);
+    const stage = stage_ref.current;
+    if (!stage) return;
+    stage.width(width).height(height);
+  }, [effect_deps, width, height]);
   const slide_background_ref = useRef<Konva.Rect>(null);
+  useEffect(() => {
+    const background = slide_background_ref.current;
+    if (!background) return;
+    background.width(width).height(height);
+  }, [effect_deps, width, height]);
   const slide_titleSlide_title_ref = useRef<Konva.Text>(null);
   const slide_titleSlide_subtitle_ref = useRef<Konva.Text>(null);
+  useEffect(() => {
+    const title = slide_titleSlide_title_ref.current;
+    const subtitle = slide_titleSlide_subtitle_ref.current;
+    if (!title || !subtitle) return;
+    title
+      .width(width)
+      .height(height * 0.55)
+      .align("center")
+      .verticalAlign("bottom")
+      .fontSize(height * 0.15);
+    subtitle
+      .position({ x: title.position().x, y: title.height() })
+      .width(width)
+      .height(height - title.height())
+      .align("center")
+      .fontSize(height * 0.07);
+  }, [effect_deps, width, height]);
   const slide_titleAndContent_title_ref = useRef<Konva.Text>(null);
   const slide_titleAndContent_content_ref = useRef<Konva.Text>(null);
   useEffect(() => {
-    const stage = stage_ref.current!;
-    const slide_draw_default_background = () => {
-      const slide_background = slide_background_ref.current!;
-      slide_background.width(stage.width());
-      slide_background.height(stage.height());
-      slide_background.fill("white");
-    };
-    const slide_draw_default_titleSlide = () => {
-      const text = slide_titleSlide_title_ref.current!;
-      const subtitle = slide_titleSlide_subtitle_ref.current!;
-      slide_draw_default_background();
-      text.width(stage.width());
-      text.height(stage.height() / 2);
-      text.align("center");
-      text.verticalAlign("middle");
-      subtitle.y(stage.height() / 2);
-      subtitle.width(stage.width());
-      subtitle.height(stage.height() / 2);
-      subtitle.align("center");
-      subtitle.verticalAlign("middle");
-    };
-    const slide_draw_default_titleAndContent = () => {
-      const title = slide_titleAndContent_title_ref.current!;
-      const content = slide_titleAndContent_content_ref.current!;
-      slide_draw_default_background();
-    };
-    const resizeObservers: ResizeObserver[] = [];
-    if (props.slide.type === Prisma.ModelName.TitleSlide) {
-      slide_draw_default_titleSlide();
-      const resizeObserver = new ResizeObserver(slide_draw_default_titleSlide);
-      resizeObserver.observe(stage.container());
-      resizeObservers.push(resizeObserver);
-    } else if (props.slide.type === Prisma.ModelName.TitleAndContent) {
-      slide_draw_default_titleAndContent();
-      const resizeObserver = new ResizeObserver(
-        slide_draw_default_titleAndContent,
-      );
-      resizeObserver.observe(stage.container());
-      resizeObservers.push(resizeObserver);
-    }
-    return () => {
-      resizeObservers.forEach((resizeObserver) => {
-        resizeObserver.disconnect();
-      });
-    };
-  }, [slide_effect_deps]);
+    const title = slide_titleAndContent_title_ref.current;
+    const content = slide_titleAndContent_content_ref.current;
+    if (!title || !content) return;
+    title
+      .width(width)
+      .height(height * 0.12)
+      .fontSize(height * 0.1)
+      .padding(16);
+    content
+      .position({ x: title.position().x, y: title.height() })
+      .width(width)
+      .height(height - title.height())
+      .fontSize(height * 0.06)
+      .padding(title.padding());
+  }, [effect_deps, width, height]);
   return (
-    <Stage
-      style={{ width: "100%", height: "100%" }}
-      ref={stage_ref}
+    <AspectRatio
+      ref={ref}
+      ratio={16 / 9}
     >
-      <Layer>
-        <Rect ref={slide_background_ref} />
-        {props.slide.type === Prisma.ModelName.TitleSlide && (
-          <>
-            <Text
-              text={props.slide.TitleSlide?.title}
-              ref={slide_titleSlide_title_ref}
+      <Card
+        shadow="sm"
+        withBorder
+        padding={0}
+      >
+        <Stage ref={stage_ref}>
+          <Layer>
+            <Rect
+              ref={slide_background_ref}
+              fill={"white"}
             />
-            <Text
-              text={props.slide.TitleSlide?.subtitle}
-              ref={slide_titleSlide_subtitle_ref}
-            />
-          </>
-        )}
-        {props.slide.type === Prisma.ModelName.TitleAndContent && (
-          <>
-            <Text
-              text={props.slide.TitleAndContent?.title}
-              ref={slide_titleAndContent_title_ref}
-            />
-            <Text
-              text={props.slide.TitleAndContent?.content}
-              ref={slide_titleAndContent_content_ref}
-            />
-          </>
-        )}
-      </Layer>
-    </Stage>
+            {props.slide.type === Prisma.ModelName.TitleSlide && (
+              <>
+                <Text
+                  text={props.slide.TitleSlide?.title}
+                  ref={slide_titleSlide_title_ref}
+                />
+                <Text
+                  text={props.slide.TitleSlide?.subtitle}
+                  ref={slide_titleSlide_subtitle_ref}
+                />
+              </>
+            )}
+            {props.slide.type === Prisma.ModelName.TitleAndContent && (
+              <>
+                <Text
+                  text={props.slide.TitleAndContent?.title}
+                  ref={slide_titleAndContent_title_ref}
+                />
+                <Text
+                  text={props.slide.TitleAndContent?.content}
+                  ref={slide_titleAndContent_content_ref}
+                />
+              </>
+            )}
+          </Layer>
+        </Stage>
+      </Card>
+    </AspectRatio>
   );
 }
