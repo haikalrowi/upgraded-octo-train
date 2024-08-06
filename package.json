@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --eval \"fs.rmSync('.next',{recursive:true,force:true});\" && prisma generate && next dev",
+    "dev": "node --eval \"fs.rmSync('.next',{recursive:true,force:true});\" && prisma generate && next dev --turbo",
     "build": "node --eval \"fs.rmSync('.next',{recursive:true,force:true});\" && prisma generate && prisma db push && next build",
     "start": "next start",
     "lint": "next lint",
@@ -17,14 +17,16 @@
     "@mantine/form": "^7",
     "@mantine/hooks": "^7",
     "@mantine/notifications": "^7",
+    "@mantine/tiptap": "^7",
     "@prisma/client": "5.17.0",
     "@tabler/icons-react": "^3",
+    "@tiptap/pm": "^2",
+    "@tiptap/react": "^2",
+    "@tiptap/starter-kit": "^2",
     "jose": "^5",
-    "konva": "^9",
     "next": "14.2.5",
     "react": "^18",
-    "react-dom": "^18",
-    "react-konva": "^18"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -33,6 +35,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "prettier": "3.3.3",
+    "prettier-plugin-css-order": "^2.1.2",
     "prettier-plugin-organize-imports": "^4",
     "prisma": "5.17.0",
     "typescript": "^5"

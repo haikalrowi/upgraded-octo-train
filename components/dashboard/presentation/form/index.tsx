@@ -7,12 +7,14 @@ import {
 import route from "@/lib/route";
 import {
   ActionIcon,
+  AspectRatio,
   Button,
   Divider,
   Fieldset,
   Group,
   NativeSelect,
   SimpleGrid,
+  Skeleton,
   Stack,
   Stepper,
   Text,
@@ -30,42 +32,53 @@ import {
 } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Payload, validateSlideType } from "./_payload";
 
-const Preview = dynamic(() => import("./preview"), { ssr: false });
+const Preview = dynamic(() => import("./preview"), {
+  ssr: false,
+  loading: () => <Skeleton />,
+});
+const RichTextEditor = dynamic(() => import("./rich-text-editor"), {
+  ssr: false,
+});
 
 type Props = { type: "create" } | { type: "update"; initialValues: Payload };
 
 export default function Form(props: Props) {
-  const form_initialSlide: () => Payload["Slide"][number] = () => {
-    return {
+  const form_getInitialSlide = useCallback<() => Payload["Slide"][number]>(
+    () => ({
       type: Prisma.ModelName.TitleSlide,
       TitleSlide: { title: "Title", subtitle: "Subtitle" },
-      TitleAndContent: { title: "", content: "" },
-      SectionHeader: { section: "", subsection: "" },
-      TwoContent: { title: "", firstContent: "", secondContent: "" },
-      Comparison: {
-        title: "",
-        firstSubtitle: "",
-        firstComparison: "",
-        secondSubtitle: "",
-        secondComparison: "",
+      TitleAndContent: { title: "Title", content: "<p>Content</p>" },
+      SectionHeader: { section: "Section", subsection: "Subsection" },
+      TwoContent: {
+        title: "Title",
+        firstContent: "First content",
+        secondContent: "Second content",
       },
-      TitleOnly: { title: "" },
+      Comparison: {
+        title: "Title",
+        firstSubtitle: "First subtitle",
+        firstComparison: "First comparison",
+        secondSubtitle: "Second subtitle",
+        secondComparison: "Second comparison",
+      },
+      TitleOnly: { title: "Title" },
       Blank: null,
-    };
-  };
+    }),
+    [],
+  );
   const form_initialValues: Payload =
     props.type === "create"
-      ? { id: "", title: "Untitled", Slide: [form_initialSlide()] }
+      ? { id: "id", title: "Untitled", Slide: [form_getInitialSlide()] }
       : {
           id: props.initialValues.id,
           title: props.initialValues.title,
           Slide: props.initialValues.Slide.map((slide) => {
             const type = validateSlideType(slide.type);
             return {
-              ...form_initialSlide(),
+              ...form_getInitialSlide(),
               type,
               [type]: type === "Blank" ? null : slide[type],
             };
@@ -81,11 +94,11 @@ export default function Form(props: Props) {
       form_values_localStorage[1](values);
     },
   });
-  const form_setEffect_deps = JSON.stringify(form_values_localStorage[0]);
+  const form_effectDeps = JSON.stringify(form_values_localStorage[0]);
   useEffect(() => {
     if (!form_values_localStorage[0]) return;
     form.setValues(form_values_localStorage[0]);
-  }, [form_setEffect_deps]);
+  }, [form_effectDeps]);
   const step_index_localStorage = useSessionStorage({
     key: `${pathname}_step_index`,
     defaultValue: 0,
@@ -119,14 +132,18 @@ export default function Form(props: Props) {
   const slide_current = useState(
     form.getValues().Slide[slide_index_localStorage[0]],
   );
-  const slide_index_setEffect_deps = slide_index_localStorage[0];
+  const slide_index_effectDeps = slide_index_localStorage[0];
   useEffect(() => {
     slide_index[1](slide_index_localStorage[0]);
     slide_current[1](form.getValues().Slide[slide_index_localStorage[0]]);
-  }, [form_setEffect_deps, slide_index_setEffect_deps]);
-  const slide_preview = <Preview slide={slide_current[0]} />;
+  }, [form_effectDeps, slide_index_effectDeps]);
+  const slide_preview = (
+    <AspectRatio ratio={16 / 9}>
+      <Preview slide={slide_current[0]} />
+    </AspectRatio>
+  );
   const slide_preview_action_insertAfter = () => {
-    form.insertListItem("Slide", form_initialSlide(), slide_index[0] + 1);
+    form.insertListItem("Slide", form_getInitialSlide(), slide_index[0] + 1);
     slide_preview_action_next();
   };
   const slide_preview_action_previous = () => {
@@ -223,13 +240,17 @@ export default function Form(props: Props) {
         key={form.key(`Slide.${slide_index[0]}.TitleAndContent.title`)}
         {...form.getInputProps(`Slide.${slide_index[0]}.TitleAndContent.title`)}
       />
-      <TextInput
-        required
-        label="Content"
-        key={form.key(`Slide.${slide_index[0]}.TitleAndContent.content`)}
-        {...form.getInputProps(
-          `Slide.${slide_index[0]}.TitleAndContent.content`,
-        )}
+      <RichTextEditor
+        options={{
+          content:
+            form.getValues().Slide[slide_index[0]].TitleAndContent?.content,
+          onUpdate(props) {
+            form.setFieldValue(
+              `Slide.${slide_index[0]}.TitleAndContent.content`,
+              props.editor.getHTML(),
+            );
+          },
+        }}
       />
     </>
   );

@@ -1,108 +1,67 @@
-import { AspectRatio, Card } from "@mantine/core";
+import { Card } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
-import { Prisma } from "@prisma/client";
-import Konva from "konva";
-import { useEffect, useRef } from "react";
-import { Layer, Rect, Stage, Text } from "react-konva";
+import { useEffect, useState } from "react";
 import { Payload } from "./_payload";
 
 type Props = { slide: Payload["Slide"][number] };
 
+const html = String.raw;
+
 export default function Preview(props: Props) {
+  const effectDeps = JSON.stringify(props);
   const { ref, width, height } = useElementSize();
-  const stage_ref = useRef<Konva.Stage>(null);
-  const effect_deps = JSON.stringify(props);
-  useEffect(() => {
-    const stage = stage_ref.current;
-    if (!stage) return;
-    stage.width(width).height(height);
-  }, [effect_deps, width, height]);
-  const slide_background_ref = useRef<Konva.Rect>(null);
-  useEffect(() => {
-    const background = slide_background_ref.current;
-    if (!background) return;
-    background.width(width).height(height);
-  }, [effect_deps, width, height]);
-  const slide_titleSlide_title_ref = useRef<Konva.Text>(null);
-  const slide_titleSlide_subtitle_ref = useRef<Konva.Text>(null);
-  useEffect(() => {
-    const title = slide_titleSlide_title_ref.current;
-    const subtitle = slide_titleSlide_subtitle_ref.current;
-    if (!title || !subtitle) return;
-    title
-      .width(width)
-      .height(height * 0.55)
-      .align("center")
-      .verticalAlign("bottom")
-      .fontSize(height * 0.15);
-    subtitle
-      .position({ x: title.position().x, y: title.height() })
-      .width(width)
-      .height(height - title.height())
-      .align("center")
-      .fontSize(height * 0.07);
-  }, [effect_deps, width, height]);
-  const slide_titleAndContent_title_ref = useRef<Konva.Text>(null);
-  const slide_titleAndContent_content_ref = useRef<Konva.Text>(null);
-  useEffect(() => {
-    const title = slide_titleAndContent_title_ref.current;
-    const content = slide_titleAndContent_content_ref.current;
-    if (!title || !content) return;
-    title
-      .width(width)
-      .height(height * 0.12)
-      .fontSize(height * 0.1)
-      .padding(16);
-    content
-      .position({ x: title.position().x, y: title.height() })
-      .width(width)
-      .height(height - title.height())
-      .fontSize(height * 0.06)
-      .padding(title.padding());
-  }, [effect_deps, width, height]);
-  return (
-    <AspectRatio
-      ref={ref}
-      ratio={16 / 9}
+  const titleSlide = html`<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="${width}"
+    height="${height}"
+  >
+    <style>
+      #background {
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        color: black;
+        #title {
+          font-size: 24px;
+        }
+        #subtitle {
+          font-size: 16px;
+        }
+      }
+    </style>
+    <foreignObject
+      width="${width}"
+      height="${height}"
     >
-      <Card
-        shadow="sm"
-        withBorder
-        padding={0}
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        id="background"
       >
-        <Stage ref={stage_ref}>
-          <Layer>
-            <Rect
-              ref={slide_background_ref}
-              fill={"white"}
-            />
-            {props.slide.type === Prisma.ModelName.TitleSlide && (
-              <>
-                <Text
-                  text={props.slide.TitleSlide?.title}
-                  ref={slide_titleSlide_title_ref}
-                />
-                <Text
-                  text={props.slide.TitleSlide?.subtitle}
-                  ref={slide_titleSlide_subtitle_ref}
-                />
-              </>
-            )}
-            {props.slide.type === Prisma.ModelName.TitleAndContent && (
-              <>
-                <Text
-                  text={props.slide.TitleAndContent?.title}
-                  ref={slide_titleAndContent_title_ref}
-                />
-                <Text
-                  text={props.slide.TitleAndContent?.content}
-                  ref={slide_titleAndContent_content_ref}
-                />
-              </>
-            )}
-          </Layer>
-        </Stage>
-      </Card>
-    </AspectRatio>
+        <div id="title">${props.slide.TitleSlide?.title}</div>
+        <div id="subtitle">${props.slide.TitleSlide?.subtitle}</div>
+      </div>
+    </foreignObject>
+  </svg>`;
+  const src = useState("");
+  useEffect(() => {
+    const url = URL.createObjectURL(
+      new Blob([titleSlide], { type: "image/svg+xml" }),
+    );
+    src[1](url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [effectDeps, width, height]);
+  return (
+    <Card
+      ref={ref}
+      padding={0}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src[0]}
+        alt=""
+      />
+    </Card>
   );
 }
