@@ -32,11 +32,11 @@ export default function Preview(props: Props) {
         background-color: white;
         height: 100%;
         color: black;
-        #title {
+        #${Prisma.TitleSlideScalarFieldEnum.title} {
           font-size: 32px;
           text-align: center;
         }
-        #subtitle {
+        #${Prisma.TitleSlideScalarFieldEnum.subtitle} {
           font-size: 16px;
           text-align: center;
         }
@@ -50,8 +50,12 @@ export default function Preview(props: Props) {
         xmlns="http://www.w3.org/1999/xhtml"
         id="background"
       >
-        <div id="title">${escapeHtml(props.slide.TitleSlide?.title)}</div>
-        <div id="subtitle">${escapeHtml(props.slide.TitleSlide?.subtitle)}</div>
+        <div id="${Prisma.TitleSlideScalarFieldEnum.title}">
+          ${escapeHtml(props.slide.TitleSlide?.title)}
+        </div>
+        <div id="${Prisma.TitleSlideScalarFieldEnum.subtitle}">
+          ${escapeHtml(props.slide.TitleSlide?.subtitle)}
+        </div>
       </div>
     </foreignObject>
   </svg>`;
@@ -68,11 +72,11 @@ export default function Preview(props: Props) {
         padding: 12px;
         height: 100%;
         color: black;
-        #title {
+        #${Prisma.TitleAndContentScalarFieldEnum.title} {
           font-size: 32px;
           text-align: center;
         }
-        #subtitle {
+        #${Prisma.TitleAndContentScalarFieldEnum.content} {
           font-size: 16px;
         }
       }
@@ -85,8 +89,12 @@ export default function Preview(props: Props) {
         xmlns="http://www.w3.org/1999/xhtml"
         id="background"
       >
-        <div id="title">${escapeHtml(props.slide.TitleAndContent?.title)}</div>
-        <div id="subtitle">${props.slide.TitleAndContent?.content}</div>
+        <div id="${Prisma.TitleAndContentScalarFieldEnum.title}">
+          ${escapeHtml(props.slide.TitleAndContent?.title)}
+        </div>
+        <div id="${Prisma.TitleAndContentScalarFieldEnum.content}">
+          ${props.slide.TitleAndContent?.content}
+        </div>
       </div>
     </foreignObject>
   </svg>`;
@@ -104,11 +112,11 @@ export default function Preview(props: Props) {
         background-color: white;
         height: 100%;
         color: black;
-        #title {
+        #${Prisma.SectionHeaderScalarFieldEnum.section} {
           font-size: 32px;
           text-align: center;
         }
-        #subtitle {
+        #${Prisma.SectionHeaderScalarFieldEnum.subsection} {
           font-size: 16px;
           text-align: center;
         }
@@ -122,8 +130,10 @@ export default function Preview(props: Props) {
         xmlns="http://www.w3.org/1999/xhtml"
         id="background"
       >
-        <div id="title">${escapeHtml(props.slide.SectionHeader?.section)}</div>
-        <div id="subtitle">
+        <div id="${Prisma.SectionHeaderScalarFieldEnum.section}">
+          ${escapeHtml(props.slide.SectionHeader?.section)}
+        </div>
+        <div id="${Prisma.SectionHeaderScalarFieldEnum.subsection}">
           ${escapeHtml(props.slide.SectionHeader?.subsection)}
         </div>
       </div>
@@ -153,7 +163,6 @@ export default function Preview(props: Props) {
     }
     if (!blob) return;
     const url = URL.createObjectURL(blob);
-    console.log({ url });
     src[1](url);
     return () => {
       URL.revokeObjectURL(url);
