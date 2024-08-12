@@ -8,7 +8,7 @@ type Props = { slide: Payload["Slide"][number] };
 
 const html = String.raw;
 const escapeHtml = (text?: string) => {
-  if (!text) return;
+  if (!text) return "";
   const element = document.createElement("p");
   const textNode = document.createTextNode(text);
   element.appendChild(textNode);
@@ -51,7 +51,7 @@ export default function Preview(props: Props) {
         id="background"
       >
         <div id="title">${escapeHtml(props.slide.TitleSlide?.title)}</div>
-        <div id="subtitle">${props.slide.TitleSlide?.subtitle}</div>
+        <div id="subtitle">${escapeHtml(props.slide.TitleSlide?.subtitle)}</div>
       </div>
     </foreignObject>
   </svg>`;
@@ -90,6 +90,45 @@ export default function Preview(props: Props) {
       </div>
     </foreignObject>
   </svg>`;
+  const sectionHeader = html`<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="${width}"
+    height="${height}"
+  >
+    <style>
+      #background {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: white;
+        height: 100%;
+        color: black;
+        #title {
+          font-size: 32px;
+          text-align: center;
+        }
+        #subtitle {
+          font-size: 16px;
+          text-align: center;
+        }
+      }
+    </style>
+    <foreignObject
+      width="${width}"
+      height="${height}"
+    >
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        id="background"
+      >
+        <div id="title">${escapeHtml(props.slide.SectionHeader?.section)}</div>
+        <div id="subtitle">
+          ${escapeHtml(props.slide.SectionHeader?.subsection)}
+        </div>
+      </div>
+    </foreignObject>
+  </svg>`;
   const src = useState("");
   useEffect(() => {
     let blob;
@@ -101,6 +140,15 @@ export default function Preview(props: Props) {
         blob = new Blob([titleAndContent], { type: "image/svg+xml" });
         break;
       case Prisma.ModelName.SectionHeader:
+        blob = new Blob([sectionHeader], { type: "image/svg+xml" });
+        break;
+      case Prisma.ModelName.TwoContent:
+        break;
+      case Prisma.ModelName.Comparison:
+        break;
+      case Prisma.ModelName.TitleOnly:
+        break;
+      case Prisma.ModelName.Blank:
         break;
     }
     if (!blob) return;
