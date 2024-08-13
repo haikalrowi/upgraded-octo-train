@@ -54,15 +54,15 @@ export default function Form(props: Props) {
       SectionHeader: { section: "Section", subsection: "Subsection" },
       TwoContent: {
         title: "Title",
-        firstContent: "First content",
-        secondContent: "Second content",
+        firstContent: "<p>First content</p>",
+        secondContent: "<p>Second content</p>",
       },
       Comparison: {
         title: "Title",
         firstSubtitle: "First subtitle",
-        firstComparison: "First comparison",
+        firstComparison: "<p>First comparison</p>",
         secondSubtitle: "Second subtitle",
-        secondComparison: "Second comparison",
+        secondComparison: "<p>Second comparison</p>",
       },
       TitleOnly: { title: "Title" },
       Blank: null,
@@ -280,21 +280,29 @@ export default function Form(props: Props) {
         key={form.key(`Slide.${slide_index[0]}.TwoContent.title`)}
         {...form.getInputProps(`Slide.${slide_index[0]}.TwoContent.title`)}
       />
-      <TextInput
-        required
-        label="First content"
-        key={form.key(`Slide.${slide_index[0]}.TwoContent.firstContent`)}
-        {...form.getInputProps(
-          `Slide.${slide_index[0]}.TwoContent.firstContent`,
-        )}
+      <RichTextEditor
+        options={{
+          content:
+            form.getValues().Slide[slide_index[0]].TwoContent?.firstContent,
+          onUpdate(props) {
+            form.setFieldValue(
+              `Slide.${slide_index[0]}.TwoContent.firstContent`,
+              props.editor.getHTML(),
+            );
+          },
+        }}
       />
-      <TextInput
-        required
-        label="Second content"
-        key={form.key(`Slide.${slide_index[0]}.TwoContent.secondContent`)}
-        {...form.getInputProps(
-          `Slide.${slide_index[0]}.TwoContent.secondContent`,
-        )}
+      <RichTextEditor
+        options={{
+          content:
+            form.getValues().Slide[slide_index[0]].TwoContent?.secondContent,
+          onUpdate(props) {
+            form.setFieldValue(
+              `Slide.${slide_index[0]}.TwoContent.secondContent`,
+              props.editor.getHTML(),
+            );
+          },
+        }}
       />
     </>
   );
@@ -314,13 +322,17 @@ export default function Form(props: Props) {
           `Slide.${slide_index[0]}.Comparison.firstSubtitle`,
         )}
       />
-      <TextInput
-        required
-        label="First comparison"
-        key={form.key(`Slide.${slide_index[0]}.Comparison.firstComparison`)}
-        {...form.getInputProps(
-          `Slide.${slide_index[0]}.Comparison.firstComparison`,
-        )}
+      <RichTextEditor
+        options={{
+          content:
+            form.getValues().Slide[slide_index[0]].Comparison?.firstComparison,
+          onUpdate(props) {
+            form.setFieldValue(
+              `Slide.${slide_index[0]}.Comparison.firstComparison`,
+              props.editor.getHTML(),
+            );
+          },
+        }}
       />
       <TextInput
         required
@@ -330,13 +342,17 @@ export default function Form(props: Props) {
           `Slide.${slide_index[0]}.Comparison.secondSubtitle`,
         )}
       />
-      <TextInput
-        required
-        label="Second comparison"
-        key={form.key(`Slide.${slide_index[0]}.Comparison.secondComparison`)}
-        {...form.getInputProps(
-          `Slide.${slide_index[0]}.Comparison.secondComparison`,
-        )}
+      <RichTextEditor
+        options={{
+          content:
+            form.getValues().Slide[slide_index[0]].Comparison?.secondComparison,
+          onUpdate(props) {
+            form.setFieldValue(
+              `Slide.${slide_index[0]}.Comparison.secondComparison`,
+              props.editor.getHTML(),
+            );
+          },
+        }}
       />
     </>
   );
@@ -350,7 +366,7 @@ export default function Form(props: Props) {
   );
   const form_pending = useToggle();
   const slide = (
-    <Fieldset>
+    <Fieldset variant="unstyled">
       <Stack>
         {slide_selectType}
         <Divider />

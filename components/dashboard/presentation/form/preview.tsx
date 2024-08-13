@@ -139,6 +139,134 @@ export default function Preview(props: Props) {
       </div>
     </foreignObject>
   </svg>`;
+  const twoContent = html`<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="${width}"
+    height="${height}"
+  >
+    <style>
+      #background {
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        padding: 12px;
+        height: 100%;
+        color: black;
+        #${Prisma.TwoContentScalarFieldEnum.title} {
+          font-size: 32px;
+          text-align: center;
+        }
+        #group {
+          display: flex;
+          #${Prisma.TwoContentScalarFieldEnum.firstContent},
+          #${Prisma.TwoContentScalarFieldEnum.secondContent} {
+            flex: 1;
+          }
+          #${Prisma.TwoContentScalarFieldEnum.firstContent} {
+            font-size: 16px;
+          }
+          #${Prisma.TwoContentScalarFieldEnum.secondContent} {
+            font-size: 16px;
+          }
+        }
+      }
+    </style>
+    <foreignObject
+      width="${width}"
+      height="${height}"
+    >
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        id="background"
+      >
+        <div id="${Prisma.TwoContentScalarFieldEnum.title}">
+          ${escapeHtml(props.slide.TwoContent?.title)}
+        </div>
+        <div id="group">
+          <div id="${Prisma.TwoContentScalarFieldEnum.firstContent}">
+            ${props.slide.TwoContent?.firstContent}
+          </div>
+          <div id="${Prisma.TwoContentScalarFieldEnum.secondContent}">
+            ${props.slide.TwoContent?.secondContent}
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+  </svg>`;
+  const comparison = html`<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="${width}"
+    height="${height}"
+  >
+    <style>
+      #background {
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        padding: 12px;
+        height: 100%;
+        color: black;
+        #${Prisma.ComparisonScalarFieldEnum.title} {
+          font-size: 32px;
+          text-align: center;
+        }
+        #group-1 {
+          display: flex;
+          #group-2,
+          #group-3 {
+            flex: 1;
+          }
+          #group-2 {
+            #${Prisma.ComparisonScalarFieldEnum.firstSubtitle} {
+              font-size: 16px;
+            }
+            #${Prisma.ComparisonScalarFieldEnum.firstComparison} {
+              font-size: 16px;
+            }
+          }
+          #group-3 {
+            #${Prisma.ComparisonScalarFieldEnum.secondSubtitle} {
+              font-size: 16px;
+            }
+            #${Prisma.ComparisonScalarFieldEnum.secondComparison} {
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    </style>
+    <foreignObject
+      width="${width}"
+      height="${height}"
+    >
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        id="background"
+      >
+        <div id="${Prisma.ComparisonScalarFieldEnum.title}">
+          ${escapeHtml(props.slide.Comparison?.title)}
+        </div>
+        <div id="group-1">
+          <div id="group-2">
+            <div id="${Prisma.ComparisonScalarFieldEnum.firstSubtitle}">
+              ${props.slide.Comparison?.firstSubtitle}
+            </div>
+            <div id="${Prisma.ComparisonScalarFieldEnum.firstComparison}">
+              ${props.slide.Comparison?.firstComparison}
+            </div>
+          </div>
+          <div id="group-3">
+            <div id="${Prisma.ComparisonScalarFieldEnum.secondSubtitle}">
+              ${props.slide.Comparison?.secondSubtitle}
+            </div>
+            <div id="${Prisma.ComparisonScalarFieldEnum.secondComparison}">
+              ${props.slide.Comparison?.secondComparison}
+            </div>
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+  </svg>`;
   const src = useState("");
   useEffect(() => {
     let blob;
@@ -153,8 +281,10 @@ export default function Preview(props: Props) {
         blob = new Blob([sectionHeader], { type: "image/svg+xml" });
         break;
       case Prisma.ModelName.TwoContent:
+        blob = new Blob([twoContent], { type: "image/svg+xml" });
         break;
       case Prisma.ModelName.Comparison:
+        blob = new Blob([comparison], { type: "image/svg+xml" });
         break;
       case Prisma.ModelName.TitleOnly:
         break;
