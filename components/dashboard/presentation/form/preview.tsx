@@ -1,6 +1,7 @@
 import { Card } from "@mantine/core";
 import { useElementSize } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
+import clsx from "clsx/lite";
 import { useEffect, useState } from "react";
 import { Payload } from "./_payload";
 
@@ -18,280 +19,226 @@ const escapeHtml = (text?: string) => {
 export default function Preview(props: Props) {
   const effectDeps = JSON.stringify(props);
   const { ref, width, height } = useElementSize();
-  const titleSlide = html`<svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="${width}"
-    height="${height}"
-  >
+  const default_style = html`
     <style>
-      #background {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+      .root {
         background-color: white;
         height: 100%;
         color: black;
-        #${Prisma.TitleSlideScalarFieldEnum.title} {
-          font-size: 32px;
-          text-align: center;
+        > .hidden {
+          display: none !important;
         }
-        #${Prisma.TitleSlideScalarFieldEnum.subtitle} {
-          font-size: 16px;
-          text-align: center;
+        > .${Prisma.ModelName.TitleSlide},
+        > .${Prisma.ModelName.TitleAndContent},
+        > .${Prisma.ModelName.SectionHeader},
+        > .${Prisma.ModelName.TwoContent},
+        > .${Prisma.ModelName.Comparison},
+        > .${Prisma.ModelName.TitleOnly},
+        > .${Prisma.ModelName.Blank} {
+          height: 100%;
         }
-      }
-    </style>
-    <foreignObject
-      width="${width}"
-      height="${height}"
-    >
-      <div
-        xmlns="http://www.w3.org/1999/xhtml"
-        id="background"
-      >
-        <div id="${Prisma.TitleSlideScalarFieldEnum.title}">
-          ${escapeHtml(props.slide.TitleSlide?.title)}
-        </div>
-        <div id="${Prisma.TitleSlideScalarFieldEnum.subtitle}">
-          ${escapeHtml(props.slide.TitleSlide?.subtitle)}
-        </div>
-      </div>
-    </foreignObject>
-  </svg>`;
-  const titleAndContent = html`<svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="${width}"
-    height="${height}"
-  >
-    <style>
-      #background {
-        display: flex;
-        flex-direction: column;
-        background-color: white;
-        padding: 12px;
-        height: 100%;
-        color: black;
-        #${Prisma.TitleAndContentScalarFieldEnum.title} {
-          font-size: 32px;
-          text-align: center;
-        }
-        #${Prisma.TitleAndContentScalarFieldEnum.content} {
-          font-size: 16px;
-        }
-      }
-    </style>
-    <foreignObject
-      width="${width}"
-      height="${height}"
-    >
-      <div
-        xmlns="http://www.w3.org/1999/xhtml"
-        id="background"
-      >
-        <div id="${Prisma.TitleAndContentScalarFieldEnum.title}">
-          ${escapeHtml(props.slide.TitleAndContent?.title)}
-        </div>
-        <div id="${Prisma.TitleAndContentScalarFieldEnum.content}">
-          ${props.slide.TitleAndContent?.content}
-        </div>
-      </div>
-    </foreignObject>
-  </svg>`;
-  const sectionHeader = html`<svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="${width}"
-    height="${height}"
-  >
-    <style>
-      #background {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background-color: white;
-        height: 100%;
-        color: black;
-        #${Prisma.SectionHeaderScalarFieldEnum.section} {
-          font-size: 32px;
-          text-align: center;
-        }
-        #${Prisma.SectionHeaderScalarFieldEnum.subsection} {
-          font-size: 16px;
-          text-align: center;
-        }
-      }
-    </style>
-    <foreignObject
-      width="${width}"
-      height="${height}"
-    >
-      <div
-        xmlns="http://www.w3.org/1999/xhtml"
-        id="background"
-      >
-        <div id="${Prisma.SectionHeaderScalarFieldEnum.section}">
-          ${escapeHtml(props.slide.SectionHeader?.section)}
-        </div>
-        <div id="${Prisma.SectionHeaderScalarFieldEnum.subsection}">
-          ${escapeHtml(props.slide.SectionHeader?.subsection)}
-        </div>
-      </div>
-    </foreignObject>
-  </svg>`;
-  const twoContent = html`<svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="${width}"
-    height="${height}"
-  >
-    <style>
-      #background {
-        display: flex;
-        flex-direction: column;
-        background-color: white;
-        padding: 12px;
-        height: 100%;
-        color: black;
-        #${Prisma.TwoContentScalarFieldEnum.title} {
-          font-size: 32px;
-          text-align: center;
-        }
-        #group {
+        .${Prisma.ModelName.TitleSlide} {
           display: flex;
-          #${Prisma.TwoContentScalarFieldEnum.firstContent},
-          #${Prisma.TwoContentScalarFieldEnum.secondContent} {
-            flex: 1;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          .${Prisma.TitleSlideScalarFieldEnum.title} {
+            font-size: 32px;
+            text-align: center;
           }
-          #${Prisma.TwoContentScalarFieldEnum.firstContent} {
+          .${Prisma.TitleSlideScalarFieldEnum.subtitle} {
             font-size: 16px;
+            text-align: center;
           }
-          #${Prisma.TwoContentScalarFieldEnum.secondContent} {
+        }
+        .${Prisma.ModelName.TitleAndContent} {
+          display: flex;
+          flex-direction: column;
+          padding: 12px;
+          .${Prisma.TitleAndContentScalarFieldEnum.title} {
+            font-size: 32px;
+            text-align: center;
+          }
+          .${Prisma.TitleAndContentScalarFieldEnum.content} {
             font-size: 16px;
           }
         }
-      }
-    </style>
-    <foreignObject
-      width="${width}"
-      height="${height}"
-    >
-      <div
-        xmlns="http://www.w3.org/1999/xhtml"
-        id="background"
-      >
-        <div id="${Prisma.TwoContentScalarFieldEnum.title}">
-          ${escapeHtml(props.slide.TwoContent?.title)}
-        </div>
-        <div id="group">
-          <div id="${Prisma.TwoContentScalarFieldEnum.firstContent}">
-            ${props.slide.TwoContent?.firstContent}
-          </div>
-          <div id="${Prisma.TwoContentScalarFieldEnum.secondContent}">
-            ${props.slide.TwoContent?.secondContent}
-          </div>
-        </div>
-      </div>
-    </foreignObject>
-  </svg>`;
-  const comparison = html`<svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="${width}"
-    height="${height}"
-  >
-    <style>
-      #background {
-        display: flex;
-        flex-direction: column;
-        background-color: white;
-        padding: 12px;
-        height: 100%;
-        color: black;
-        #${Prisma.ComparisonScalarFieldEnum.title} {
-          font-size: 32px;
-          text-align: center;
-        }
-        #group-1 {
+        .${Prisma.ModelName.SectionHeader} {
           display: flex;
-          #group-2,
-          #group-3 {
-            flex: 1;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          .${Prisma.SectionHeaderScalarFieldEnum.section} {
+            font-size: 32px;
+            text-align: center;
           }
-          #group-2 {
-            #${Prisma.ComparisonScalarFieldEnum.firstSubtitle} {
-              font-size: 16px;
-            }
-            #${Prisma.ComparisonScalarFieldEnum.firstComparison} {
-              font-size: 16px;
-            }
+          .${Prisma.SectionHeaderScalarFieldEnum.subsection} {
+            font-size: 16px;
+            text-align: center;
           }
-          #group-3 {
-            #${Prisma.ComparisonScalarFieldEnum.secondSubtitle} {
-              font-size: 16px;
+        }
+        .${Prisma.ModelName.TwoContent} {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          .${Prisma.TwoContentScalarFieldEnum.title} {
+          }
+          .${Prisma.ModelName.TwoContent}-group-1 {
+            .${Prisma.TwoContentScalarFieldEnum.firstContent} {
             }
-            #${Prisma.ComparisonScalarFieldEnum.secondComparison} {
-              font-size: 16px;
+            .${Prisma.TwoContentScalarFieldEnum.secondContent} {
             }
           }
         }
       }
     </style>
-    <foreignObject
+  `;
+  const default_titleSlide = html`
+    <div
+      class="${clsx(
+        Prisma.ModelName.TitleSlide,
+        props.slide.type !== Prisma.ModelName.TitleSlide && "hidden",
+      )}"
+    >
+      <div class="${Prisma.TitleSlideScalarFieldEnum.title}">
+        ${escapeHtml(props.slide.TitleSlide?.title)}
+      </div>
+      <div class="${Prisma.TitleSlideScalarFieldEnum.subtitle}">
+        ${escapeHtml(props.slide.TitleSlide?.subtitle)}
+      </div>
+    </div>
+  `;
+  const default_titleAndContent = html`
+    <div
+      class="${clsx(
+        Prisma.ModelName.TitleAndContent,
+        props.slide.type !== Prisma.ModelName.TitleAndContent && "hidden",
+      )}"
+    >
+      <div class="${Prisma.TitleAndContentScalarFieldEnum.title}">
+        ${escapeHtml(props.slide.TitleAndContent?.title)}
+      </div>
+      <div class="${Prisma.TitleAndContentScalarFieldEnum.content}">
+        ${props.slide.TitleAndContent?.content}
+      </div>
+    </div>
+  `;
+  const default_sectionHeader = html`
+    <div
+      class="${clsx(
+        Prisma.ModelName.SectionHeader,
+        props.slide.type !== Prisma.ModelName.SectionHeader && "hidden",
+      )}"
+    >
+      <div class="${Prisma.SectionHeaderScalarFieldEnum.section}">
+        ${escapeHtml(props.slide.SectionHeader?.section)}
+      </div>
+      <div class="${Prisma.SectionHeaderScalarFieldEnum.subsection}">
+        ${escapeHtml(props.slide.SectionHeader?.subsection)}
+      </div>
+    </div>
+  `;
+  const default_twoContent = html`
+    <div
+      class="${clsx(
+        Prisma.ModelName.TwoContent,
+        props.slide.type !== Prisma.ModelName.TwoContent && "hidden",
+      )}"
+    >
+      <div class="${Prisma.TwoContentScalarFieldEnum.title}">
+        ${escapeHtml(props.slide.TwoContent?.title)}
+      </div>
+      <div class="${Prisma.ModelName.TwoContent}-group-1">
+        <div class="${Prisma.TwoContentScalarFieldEnum.firstContent}">
+          ${props.slide.TwoContent?.firstContent}
+        </div>
+        <div class="${Prisma.TwoContentScalarFieldEnum.secondContent}">
+          ${props.slide.TwoContent?.secondContent}
+        </div>
+      </div>
+    </div>
+  `;
+  const default_comparison = html`
+    <div
+      class="${clsx(
+        Prisma.ModelName.Comparison,
+        props.slide.type !== Prisma.ModelName.Comparison && "hidden",
+      )}"
+    >
+      <div class="${Prisma.ComparisonScalarFieldEnum.title}">
+        ${escapeHtml(props.slide.Comparison?.title)}
+      </div>
+      <div class="${Prisma.ComparisonScalarFieldEnum.firstSubtitle}">
+        ${escapeHtml(props.slide.Comparison?.firstSubtitle)}
+      </div>
+      <div class="${Prisma.ComparisonScalarFieldEnum.firstComparison}">
+        ${props.slide.Comparison?.firstComparison}
+      </div>
+      <div class="${Prisma.ComparisonScalarFieldEnum.secondSubtitle}">
+        ${escapeHtml(props.slide.Comparison?.secondSubtitle)}
+      </div>
+      <div class="${Prisma.ComparisonScalarFieldEnum.secondSubtitle}">
+        ${props.slide.Comparison?.secondComparison}
+      </div>
+    </div>
+  `;
+  const default_titleOnly = html`
+    <div
+      class="${clsx(
+        Prisma.ModelName.TitleOnly,
+        props.slide.type !== Prisma.ModelName.TitleOnly && "hidden",
+      )}"
+    >
+      <div class="${Prisma.TitleOnlyScalarFieldEnum.title}">
+        ${escapeHtml(props.slide.TitleOnly?.title)}
+      </div>
+    </div>
+  `;
+  const default_blank = html`
+    <div
+      class="${clsx(
+        Prisma.ModelName.Blank,
+        props.slide.type !== Prisma.ModelName.Blank && "hidden",
+      )}"
+    ></div>
+  `;
+  const theme_default = html`
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
       width="${width}"
       height="${height}"
     >
-      <div
-        xmlns="http://www.w3.org/1999/xhtml"
-        id="background"
+      ${default_style}
+      <foreignObject
+        width="${width}"
+        height="${height}"
       >
-        <div id="${Prisma.ComparisonScalarFieldEnum.title}">
-          ${escapeHtml(props.slide.Comparison?.title)}
+        <div
+          xmlns="http://www.w3.org/1999/xhtml"
+          class="root"
+        >
+          <!--  -->
+          ${default_titleSlide}
+          <!--  -->
+          ${default_titleAndContent}
+          <!--  -->
+          ${default_sectionHeader}
+          <!--  -->
+          ${default_twoContent}
+          <!--  -->
+          ${default_comparison}
+          <!--  -->
+          ${default_titleOnly}
+          <!--  -->
+          ${default_blank}
         </div>
-        <div id="group-1">
-          <div id="group-2">
-            <div id="${Prisma.ComparisonScalarFieldEnum.firstSubtitle}">
-              ${props.slide.Comparison?.firstSubtitle}
-            </div>
-            <div id="${Prisma.ComparisonScalarFieldEnum.firstComparison}">
-              ${props.slide.Comparison?.firstComparison}
-            </div>
-          </div>
-          <div id="group-3">
-            <div id="${Prisma.ComparisonScalarFieldEnum.secondSubtitle}">
-              ${props.slide.Comparison?.secondSubtitle}
-            </div>
-            <div id="${Prisma.ComparisonScalarFieldEnum.secondComparison}">
-              ${props.slide.Comparison?.secondComparison}
-            </div>
-          </div>
-        </div>
-      </div>
-    </foreignObject>
-  </svg>`;
+      </foreignObject>
+    </svg>
+  `;
   const src = useState("");
   useEffect(() => {
-    let blob;
-    switch (props.slide.type) {
-      case Prisma.ModelName.TitleSlide:
-        blob = new Blob([titleSlide], { type: "image/svg+xml" });
-        break;
-      case Prisma.ModelName.TitleAndContent:
-        blob = new Blob([titleAndContent], { type: "image/svg+xml" });
-        break;
-      case Prisma.ModelName.SectionHeader:
-        blob = new Blob([sectionHeader], { type: "image/svg+xml" });
-        break;
-      case Prisma.ModelName.TwoContent:
-        blob = new Blob([twoContent], { type: "image/svg+xml" });
-        break;
-      case Prisma.ModelName.Comparison:
-        blob = new Blob([comparison], { type: "image/svg+xml" });
-        break;
-      case Prisma.ModelName.TitleOnly:
-        break;
-      case Prisma.ModelName.Blank:
-        break;
-    }
-    if (!blob) return;
+    const blob = new Blob([theme_default], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
     src[1](url);
     return () => {

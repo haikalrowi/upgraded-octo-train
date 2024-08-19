@@ -65,7 +65,6 @@ export default function Form(props: Props) {
         secondComparison: "<p>Second comparison</p>",
       },
       TitleOnly: { title: "Title" },
-      Blank: null,
     }),
     [],
   );
@@ -243,7 +242,7 @@ export default function Form(props: Props) {
       <RichTextEditor
         options={{
           content:
-            form.getValues().Slide[slide_index[0]].TitleAndContent?.content,
+            form.getValues().Slide[slide_index[0]]?.TitleAndContent?.content,
           onUpdate(props) {
             form.setFieldValue(
               `Slide.${slide_index[0]}.TitleAndContent.content`,
@@ -283,7 +282,7 @@ export default function Form(props: Props) {
       <RichTextEditor
         options={{
           content:
-            form.getValues().Slide[slide_index[0]].TwoContent?.firstContent,
+            form.getValues().Slide[slide_index[0]]?.TwoContent?.firstContent,
           onUpdate(props) {
             form.setFieldValue(
               `Slide.${slide_index[0]}.TwoContent.firstContent`,
@@ -295,7 +294,7 @@ export default function Form(props: Props) {
       <RichTextEditor
         options={{
           content:
-            form.getValues().Slide[slide_index[0]].TwoContent?.secondContent,
+            form.getValues().Slide[slide_index[0]]?.TwoContent?.secondContent,
           onUpdate(props) {
             form.setFieldValue(
               `Slide.${slide_index[0]}.TwoContent.secondContent`,
@@ -325,7 +324,7 @@ export default function Form(props: Props) {
       <RichTextEditor
         options={{
           content:
-            form.getValues().Slide[slide_index[0]].Comparison?.firstComparison,
+            form.getValues().Slide[slide_index[0]]?.Comparison?.firstComparison,
           onUpdate(props) {
             form.setFieldValue(
               `Slide.${slide_index[0]}.Comparison.firstComparison`,
@@ -345,7 +344,8 @@ export default function Form(props: Props) {
       <RichTextEditor
         options={{
           content:
-            form.getValues().Slide[slide_index[0]].Comparison?.secondComparison,
+            form.getValues().Slide[slide_index[0]]?.Comparison
+              ?.secondComparison,
           onUpdate(props) {
             form.setFieldValue(
               `Slide.${slide_index[0]}.Comparison.secondComparison`,
